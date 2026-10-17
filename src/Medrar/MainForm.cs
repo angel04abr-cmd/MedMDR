@@ -94,6 +94,7 @@ internal sealed partial class MainForm : Form
             else if (openPath != null && File.Exists(openPath)) { GoFolder(Path.GetDirectoryName(Path.GetFullPath(openPath))!); OpenArchive(Path.GetFullPath(openPath)); }
             else GoFolder(start);
         };
+        Shown += (_, _) => Updates.CheckInBackground(this, _settings);
     }
 
     // ---------------------------------------------------------------- construcción

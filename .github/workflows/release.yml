@@ -1,6 +1,7 @@
 name: Publicar versión
 
-# Se ejecuta al subir una etiqueta que empiece por «v» (por ejemplo v1.1.0): compila, prueba y crea la release con el .zip.
+# Se ejecuta al subir una etiqueta que empiece por «v» (por ejemplo v1.2.0): compila, prueba y crea la release con el
+# instalador .msi, el .zip portable y SHA256SUMS.txt (las sumas que Medrar comprueba antes de actualizarse solo).
 on:
   push:
     tags: ['v*']
@@ -18,16 +19,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Instalar Inno Setup (para crear el instalador)
-        shell: pwsh
-        run: |
-          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") -and -not (Test-Path "$env:ProgramFiles\Inno Setup 7\ISCC.exe")) {
-            choco install innosetup --no-progress -y
-          }
-
-      - name: Pruebas, instalador y paquete
+      # build.ps1 instala WiX 6 en .tools\ la primera vez (dotnet tool), así que no hace falta nada más.
+      - name: Pruebas, instalador MSI y paquete
         shell: pwsh
         run: ./build.ps1 -Test -Zip -Installer
+
+      - name: Comprobar que la versión coincide con la etiqueta
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          $msi = Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1
+          if (-not $msi) { throw 'No se encontró el instalador .msi' }
+          if ($msi.Name -ne "Medrar-$tag-x64.msi") { throw "La etiqueta v$tag no coincide con la versión compilada ($($msi.Name)). Sube <Version> en los .csproj antes de etiquetar." }
 
       - name: Crear (o actualizar) la release
         shell: pwsh
@@ -35,15 +38,16 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = '${{ github.ref_name }}'
-          $zip = Get-ChildItem dist -Filter 'Medrar-*-win-x64.zip' | Select-Object -First 1
-          $setup = Get-ChildItem dist -Filter 'Medrar-Setup-*.exe' | Select-Object -First 1
-          if (-not $zip) { throw 'No se encontró el paquete .zip' }
-          if (-not $setup) { throw 'No se encontró el instalador' }
+          $files = @(
+            (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1),
+            (Get-ChildItem dist -Filter 'Medrar-*-win-x64.zip' | Select-Object -First 1),
+            (Get-Item dist\SHA256SUMS.txt)
+          ) | ForEach-Object { $_.FullName }
           $ErrorActionPreference = 'Continue'
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag $setup.FullName $zip.FullName --clobber   # la release ya existe: solo se suben los ficheros
+            gh release upload $tag @files --clobber   # la release ya existe: solo se suben los ficheros
           } else {
-            gh release create $tag $setup.FullName $zip.FullName --title "Medrar $tag" --generate-notes
+            gh release create $tag @files --title "Medrar $tag" --generate-notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release' }

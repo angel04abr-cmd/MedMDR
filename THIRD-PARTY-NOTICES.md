@@ -6,6 +6,7 @@ Medrar usa los siguientes componentes libres. Todos tienen licencia MIT, que exi
 |---|---|---|
 | [SharpCompress](https://github.com/adamhathcock/sharpcompress) 0.50.5 | Leer RAR, 7Z, BZ2, XZ, LZ, CAB, ISO… y crear 7Z | © 2025 Adam Hathcock |
 | [System.IO.Hashing](https://www.nuget.org/packages/System.IO.Hashing) 10.0.0 | Suma de control CRC32 | © Microsoft Corporation |
+| [System.Security.Cryptography.ProtectedData](https://www.nuget.org/packages/System.Security.Cryptography.ProtectedData) 10.0.0 | Guardar cifrado el token de las actualizaciones (DPAPI) | © Microsoft Corporation |
 | [.NET](https://dotnet.microsoft.com) 10 (Medrar.Sfx.Full.exe lo incluye entero) | Plataforma de ejecución | © .NET Foundation y colaboradores |
 
 Dependencias del propio .NET (se distribuyen dentro de `Medrar.Sfx.Full.exe`): consulta

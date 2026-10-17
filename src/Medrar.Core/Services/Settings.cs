@@ -54,6 +54,12 @@ public sealed class AppSettings
     public bool AskBeforeDelete { get; set; } = true;
     public bool ContextMenuCascaded { get; set; } = true;
 
+    // Actualizaciones (lo único que usa la red). El token de GitHub se guarda cifrado con DPAPI.
+    public bool AutoCheckUpdates { get; set; } = true;
+    public DateTime LastUpdateCheckUtc { get; set; }
+    public string SkippedVersion { get; set; } = "";
+    public string UpdateTokenProtected { get; set; } = "";
+
     public List<Favorite> Favorites { get; set; } = new();
     public List<string> History { get; set; } = new();
     public List<string> RecentArchives { get; set; } = new();

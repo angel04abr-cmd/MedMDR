@@ -104,6 +104,7 @@ internal sealed partial class MainForm
         help.DropDownItems.AddRange(new ToolStripItem[]
         {
             Item("&Cómo se usa Medrar", Keys.F1, (_, _) => ViewerForm.ShowText(this, "Ayuda de Medrar", HelpText.Text, _settings)),
+            Item("Buscar a&ctualizaciones…", Keys.None, async (_, _) => await Updates.CheckNowAsync(this, _settings)),
             new ToolStripSeparator(),
             Item("&Acerca de Medrar…", Keys.None, (_, _) => { using var d = new AboutDialog(); d.ShowDialog(this); }),
         });

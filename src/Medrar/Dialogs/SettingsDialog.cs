@@ -31,6 +31,11 @@ internal sealed class SettingsDialog : DialogBase
     private readonly CheckBox _askDelete = UI.Check("Pedir confirmación antes de eliminar");
     private readonly CheckBox _broken = UI.Check("Conservar los ficheros dañados al extraer");
     private readonly ComboBox _overwrite = UI.Combo(new[] { "Preguntar", "Sobrescribir sin preguntar", "Omitir los existentes", "Renombrar automáticamente" }, 0, 240);
+    // Actualizaciones
+    private readonly CheckBox _autoUpdate = UI.Check("Buscar actualizaciones al abrir Medrar (como mucho una vez al día)");
+    private readonly TextBox _token = new() { Width = 420, UseSystemPasswordChar = true, Margin = new Padding(0, 3, 6, 3) };
+    private readonly Label _tokenState = UI.Label("", muted: true);
+    private bool _clearToken;
     // Integración
     private readonly Label _intState = UI.Label("", muted: true);
     private readonly CheckBox _assoc = UI.Check("Asociar los archivos .mdr con Medrar", true);
@@ -66,7 +71,21 @@ internal sealed class SettingsDialog : DialogBase
         var viewer = UI.Page(UI.Label("Fuente del visor:"), UI.Row(_font, UI.Label("Tamaño"), _fontSize), _wrap,
             UI.Row(UI.Label("Máximo que se muestra de cada fichero:"), _maxKb, UI.Label("KB")));
         var sec = UI.Page(_askDelete, _broken, UI.Label("Si el fichero ya existe al extraer:"), _overwrite,
-            UI.Label("Medrar nunca guarda contraseñas en el disco ni las envía a ningún sitio: la aplicación no usa la red.", muted: true));
+            UI.Label("Medrar nunca guarda contraseñas en el disco ni las envía a ningún sitio. La única conexión a Internet es la búsqueda de\nactualizaciones (pestaña «Actualizaciones»), que no envía ningún dato de tus archivos.", muted: true));
+
+        _autoUpdate.Checked = s.AutoCheckUpdates;
+        UpdateTokenState();
+        string how = UpdateInstaller.IsMsiInstall()
+            ? "✔ Esta copia se instaló con el instalador (.msi): puede actualizarse sola."
+            : "Esta copia no se instaló con el .msi (es portable): avisará de las versiones nuevas, pero tendrás que instalarlas tú.";
+        var upd = UI.Page(
+            UI.Label("Actualizaciones automáticas", true),
+            UI.Label(how, muted: true),
+            _autoUpdate,
+            UI.Label("Token de acceso de GitHub (solo lectura):"),
+            UI.Row(_token, UI.Button("Quitar", (_, _) => { _clearToken = true; _token.Text = ""; _tokenState.Text = "Se quitará el token al aceptar."; }, 80)),
+            _tokenState,
+            UI.Label("El repositorio de Medrar es privado: sin un token, GitHub no deja ver las versiones. Créalo en GitHub > Settings >\nDeveloper settings > Fine-grained tokens, solo para el repositorio Medrar, con el permiso «Contents: Read-only».\nSe guarda cifrado con tu cuenta de Windows (DPAPI) y solo se envía a api.github.com.", muted: true));
 
         var integ = UI.Page(
             UI.Label("Integración con el Explorador de Windows", true),
@@ -81,10 +100,14 @@ internal sealed class SettingsDialog : DialogBase
         tabs.TabPages.Add(UI.Tab("Carpetas", folders));
         tabs.TabPages.Add(UI.Tab("Visor", viewer));
         tabs.TabPages.Add(UI.Tab("Seguridad", sec));
+        tabs.TabPages.Add(UI.Tab("Actualizaciones", upd));
         tabs.TabPages.Add(UI.Tab("Integración", integ));
         Controls.Add(tabs);
         Controls.Add(Footer(okClick: Accept));
     }
+
+    private void UpdateTokenState() =>
+        _tokenState.Text = string.IsNullOrEmpty(_s.UpdateTokenProtected) ? "No hay ningún token guardado." : "✔ Hay un token guardado. Escribe otro arriba solo si quieres cambiarlo.";
 
     private static string ExePath => Environment.ProcessPath ?? Application.ExecutablePath;
 
@@ -122,6 +145,10 @@ internal sealed class SettingsDialog : DialogBase
         _s.ViewerFontName = (string)_font.SelectedItem!; _s.ViewerFontSize = (float)_fontSize.Value; _s.ViewerWordWrap = _wrap.Checked; _s.ViewerMaxKb = (int)_maxKb.Value;
         _s.AskBeforeDelete = _askDelete.Checked; _s.KeepBrokenFiles = _broken.Checked;
         _s.ExtractOverwrite = _overwrite.SelectedIndex switch { 1 => OverwriteMode.Overwrite, 2 => OverwriteMode.Skip, 3 => OverwriteMode.Rename, _ => OverwriteMode.Ask };
+        _s.AutoCheckUpdates = _autoUpdate.Checked;
+        string tk = _token.Text.Trim();
+        if (tk.Length > 0) { _s.UpdateTokenProtected = TokenProtector.Protect(tk); _s.LastUpdateCheckUtc = default; }
+        else if (_clearToken) { _s.UpdateTokenProtected = ""; _s.LastUpdateCheckUtc = default; }
         DialogResult = DialogResult.OK;
     }
 }

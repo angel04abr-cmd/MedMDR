@@ -11,23 +11,45 @@ y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros
 
 ## Descargar e instalar
 
-Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-Setup-<versión>.exe`**: es el instalador.
+Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-<versión>-x64.msi`**: es el instalador de Windows.
 
-1. Ábrelo y sigue el asistente (está en español). Por defecto se instala **solo para tu usuario** y no pide permisos de
-   administrador; si quieres instalarlo para todos los usuarios, el asistente te lo permite.
-2. Puedes marcar si quieres asociar los archivos `.mdr`, añadir «Añadir a un archivo con Medrar» al menú del botón derecho y
-   crear un acceso directo en el escritorio.
-3. Si falta el [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/download/dotnet/10.0), el instalador te avisa y te
-   lleva a la página de descarga.
-4. Para **actualizar**, baja el instalador de la versión nueva y ejecútalo encima (conserva tu configuración).
+1. Haz doble clic y sigue el asistente (está en español). Se instala **solo para tu usuario**, en
+   `%LocalAppData%\Programs\Medrar`, y **no pide permisos de administrador**.
+2. En la lista de componentes puedes elegir si asociar los archivos `.mdr`, añadir «Añadir a un archivo con Medrar» al menú del
+   botón derecho y crear un acceso directo en el escritorio.
+3. Hace falta el [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/download/dotnet/10.0) (x64): si falta, el instalador lo
+   dice y no continúa.
+4. **Se actualiza solo** (ver abajo). También puedes ejecutar el `.msi` de una versión nueva encima: la sustituye y conserva tu
+   configuración.
 5. Para **desinstalar**: Configuración de Windows → Aplicaciones → Medrar. Tu configuración (`%APPDATA%\Medrar`) no se borra.
 
 > El instalador **no está firmado digitalmente**, así que Windows SmartScreen puede mostrar «Windows protegió su PC»:
 > pulsa *Más información → Ejecutar de todos modos*. (Firmar exige un certificado de pago.)
 > El repositorio es privado: para descargar hay que iniciar sesión en GitHub con la cuenta que tiene acceso.
+>
+> **Si tenías Medrar 1.1.x instalado con el antiguo instalador `.exe`** (Medrar-Setup-….exe), desinstálalo antes
+> (Configuración de Windows → Aplicaciones → Medrar). El `.msi` nuevo lo detecta y se niega a instalarse encima, porque las
+> asociaciones de archivos de la versión antigua anularían las nuevas. Tus archivos y tu configuración no se tocan.
 
 **Sin instalar (portable):** la release también trae `Medrar-<versión>-win-x64.zip`; descomprímelo y abre `Medrar.exe`.
-Medrar **no se actualiza solo** (no usa la red a propósito): las versiones nuevas se descargan de Releases.
+La copia portable avisa de las versiones nuevas, pero no se instala sola (solo la del `.msi` puede hacerlo).
+
+### Actualización automática
+
+- Al abrir Medrar (como mucho **una vez cada 24 horas**) y desde **Ayuda → Buscar actualizaciones…**, Medrar pregunta a GitHub
+  cuál es la última versión publicada. Si hay una nueva, muestra sus novedades y te deja **Actualizar**, **Más tarde** u
+  **Omitir esta versión**. Se puede desactivar en *Configuración → Actualizaciones*.
+- Al aceptar, descarga el `.msi`, **comprueba su suma SHA-256** con la que la release publica en `SHA256SUMS.txt` (si no
+  coincide, o la release no trae las sumas, **no instala nada**), cierra Medrar, instala la versión nueva encima (con una
+  barra de progreso de Windows) y vuelve a abrir Medrar.
+- **El repositorio es privado**, así que GitHub no deja ver las versiones sin identificarse. Hay que crear una vez un
+  **token de acceso de solo lectura** (GitHub → Settings → Developer settings → *Fine-grained tokens*, solo para el
+  repositorio `Medrar`, permiso **Contents: Read-only**) y pegarlo en *Configuración → Actualizaciones*. Se guarda **cifrado con
+  tu cuenta de Windows (DPAPI)** y solo se envía a `api.github.com`. Sin token, la búsqueda falla con un mensaje claro y no
+  molesta al abrir el programa. Si algún día el repositorio pasa a ser público, no hace falta token.
+- Al actualizarse, el instalador vuelve a aplicar los componentes por defecto: si habías quitado la asociación `.mdr` o el menú
+  del botón derecho, vuelven a aparecer (se quitan en *Configuración → Integración*); el acceso directo del escritorio solo si lo
+  habías marcado.
 
 | Fichero | Para qué sirve |
 |---|---|
@@ -131,6 +153,11 @@ mdr -h                                                      ayuda completa
 - **RAR con contraseña:** se abren los de cabeceras cifradas (Medrar pide la clave al abrir) y los de solo contenido cifrado
   (se ve el listado y se pide la clave al extraer). En RAR cifrados no se puede comparar la suma de control normal, así que un
   error solo se detecta si falla el descifrado o la descompresión. Probado con RAR 5 creados por WinRAR 7.23; RAR 4 cifrados, no.
+- **Actualizaciones:** solo la copia instalada con el `.msi` se actualiza sola. El `.msi` no está firmado, así que la garantía de que
+  es el correcto es la suma SHA-256 publicada en la misma release de GitHub: protege de descargas dañadas o alteradas por el camino,
+  pero **no** de alguien que controle el propio repositorio. Mientras el repositorio sea privado hace falta el token de solo lectura.
+  La actualización se probó con el código real contra un servidor GitHub falso local y con el instalador real (esperar a que se
+  cierre Medrar, instalar encima y reabrir); los cuadros de aviso y de progreso no se probaron manualmente en la ventana.
 - **Qué se probó a mano en la ventana real:** abrir, ver, comprobar y extraer con **.mdr, ZIP con contraseña y RAR con contraseña**;
   crear **.mdr** y **ZIP con contraseña**; editar (eliminar o renombrar) en **.mdr, ZIP con y sin contraseña, 7Z y TAR.GZ**;
   proteger, reparar un ZIP dañado y arrastrar fuera del archivo. Los autoextraíbles se probaron ejecutándolos (ligero y completo,
@@ -141,7 +168,10 @@ mdr -h                                                      ayuda completa
 
 - Guarda su configuración en `%APPDATA%\Medrar\settings.json` (tema, favoritos, perfiles, carpetas recientes). **Nunca contraseñas.**
 - Los errores inesperados se anotan en `%APPDATA%\Medrar\error.log`.
-- **No usa la red**: el programa no incluye ningún componente de red ni de telemetría.
+- **La única conexión a Internet es la búsqueda de actualizaciones** (a `api.github.com` y a la descarga de la release). No envía
+  ningún dato tuyo ni de tus archivos, no hay telemetría, y se puede desactivar en *Configuración → Actualizaciones*.
+- El token de GitHub de las actualizaciones, si lo pones, se guarda **cifrado con DPAPI** en `settings.json` (solo lo descifra tu
+  cuenta de Windows en este equipo).
 - Al abrir un fichero del archivo con doble clic o arrastrarlo, se extrae a `%TEMP%\Medrar\` y se borra al cerrar Medrar.
 
 ## Seguridad
@@ -164,19 +194,20 @@ src/Medrar.Core     Motor (sin interfaz): formatos, cifrado, recuperación, vol�
 src/Medrar          La aplicación de escritorio (Windows Forms, todos los iconos dibujados por código)
 src/Medrar.Cli      mdr.exe, línea de comandos
 src/Medrar.Sfx      Módulo autoextraíble
-installer/          Script del instalador (Inno Setup)
-tests/Medrar.Tests  102 pruebas automáticas del motor
+installer/          Instalador MSI (WiX Toolset 6)
+tests/Medrar.Tests  127 pruebas automáticas del motor y del actualizador
 docs/FORMATO-MDR.md Especificación del formato .mdr
 docs/ANALISIS.md    Qué se averiguó de WinRAR con ingeniería inversa y cómo se usó
 ```
 
 ### Compilar y probar
 
-Requisitos: [.NET SDK 10](https://dotnet.microsoft.com/download).
+Requisitos: [.NET SDK 10](https://dotnet.microsoft.com/download). Para el instalador, `build.ps1` descarga solo
+[WiX Toolset 6](https://wixtoolset.org) en `.tools\` (se elige la 6.x a propósito: la 7 exige aceptar una cuota de mantenimiento OSMF).
 
 ```
 powershell -ExecutionPolicy Bypass -File build.ps1            compila y deja todo en dist\Medrar
-powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip -Installer   pruebas + .zip + instalador (necesita Inno Setup)
+powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip -Installer   pruebas + .zip + .msi + SHA256SUMS.txt (en dist\)
 dotnet test tests\Medrar.Tests                                solo las pruebas
 ```
 
@@ -185,8 +216,9 @@ comprobar nada** (no se marcan como omitidas).
 
 ### Publicar una versión nueva
 
-1. Cambia `<Version>` en `src/Medrar/Medrar.csproj` (y en los otros `.csproj` si quieres que coincidan).
-2. `git commit`, `git tag v1.1.0` y `git push origin main --tags`.
-3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el instalador y el `.zip`.
+1. Sube `<Version>` en los cuatro `.csproj` (formato `1.2.3`; el instalador y el actualizador comparan esos tres números).
+2. `git commit`, `git tag v1.2.3` y `git push origin main --tags`.
+3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el `.msi`, el `.zip` y
+   `SHA256SUMS.txt`. **Los tres ficheros son necesarios** para que las copias ya instaladas se actualicen solas.
 
-Bibliotecas externas: **SharpCompress** (MIT) y **System.IO.Hashing** (MIT) — ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Bibliotecas externas: **SharpCompress** (MIT), **System.IO.Hashing** (MIT) y **System.Security.Cryptography.ProtectedData** (MIT) — ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

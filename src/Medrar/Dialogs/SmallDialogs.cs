@@ -55,7 +55,7 @@ internal sealed class AboutDialog : DialogBase
         var logo = new PictureBox { Image = Icons.Get(IconKind.Logo, 96), SizeMode = PictureBoxSizeMode.AutoSize, Margin = new Padding(0, 8, 16, 0) };
         var text = UI.Column(
             new Label { Text = "Medrar", Font = new Font(Font.FontFamily, 22, FontStyle.Bold), AutoSize = true },
-            UI.Label("Versión 1.0"),
+            UI.Label("Versión " + Updates.CurrentVersion),
             UI.Label("Gestor de archivos comprimidos para Windows."),
             UI.Label("Crea y extrae .mdr, ZIP, TAR y GZ; lee además RAR, 7Z, BZ2, XZ y más.", muted: true),
             UI.Label("Todo el código, iconos y textos son propios."),
