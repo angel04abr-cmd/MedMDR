@@ -1,0 +1,23 @@
+name: Compilar y probar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pruebas
+        run: dotnet test tests/Medrar.Tests/Medrar.Tests.csproj -c Release
+
+      - name: Compilar todo
+        shell: pwsh
+        run: ./build.ps1

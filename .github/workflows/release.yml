@@ -1,0 +1,40 @@
+name: Publicar versión
+
+# Se ejecuta al subir una etiqueta que empiece por «v» (por ejemplo v1.1.0): compila, prueba y crea la release con el .zip.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pruebas y paquete
+        shell: pwsh
+        run: ./build.ps1 -Test -Zip
+
+      - name: Crear (o actualizar) la release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $zip = Get-ChildItem dist -Filter 'Medrar-*-win-x64.zip' | Select-Object -First 1
+          if (-not $zip) { throw 'No se encontró el paquete .zip' }
+          $ErrorActionPreference = 'Continue'
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $zip.FullName --clobber          # la release ya existe: solo se sube el paquete
+          } else {
+            gh release create $tag $zip.FullName --title "Medrar $tag" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release' }

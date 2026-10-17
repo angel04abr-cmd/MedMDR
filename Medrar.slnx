@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Medrar.Cli/Medrar.Cli.csproj" />
+    <Project Path="src/Medrar.Core/Medrar.Core.csproj" />
+    <Project Path="src/Medrar.Sfx/Medrar.Sfx.csproj" />
+    <Project Path="src/Medrar/Medrar.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Medrar.Tests/Medrar.Tests.csproj" />
+  </Folder>
+</Solution>
