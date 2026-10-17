@@ -107,8 +107,9 @@ internal sealed partial class MainForm
         if (!Clipboard.ContainsFileDropList()) return;
         try
         {
-            foreach (string src in Clipboard.GetFileDropList())
+            foreach (string? src in Clipboard.GetFileDropList())
             {
+                if (src == null) continue;
                 string dest = Path.Combine(_folder, Path.GetFileName(src.TrimEnd('\\')));
                 if (Directory.Exists(src)) CopyDir(src, Extractor.UniqueName(dest));
                 else File.Copy(src, File.Exists(dest) ? Extractor.UniqueName(dest) : dest);

@@ -612,6 +612,7 @@ public class ToolTests
     }
 
     [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public void Shell_integration_writes_only_under_test_key_and_cleans_up()
     {
         string root = @"Software\MedrarTest_" + Guid.NewGuid().ToString("N")[..8];

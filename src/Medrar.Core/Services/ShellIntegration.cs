@@ -6,6 +6,7 @@ namespace Medrar.Core;
 /// Integración con el Explorador de Windows (menú de clic derecho y asociación de .mdr).
 /// Solo escribe en HKEY_CURRENT_USER, así que no necesita permisos de administrador y se deshace por completo.
 /// </summary>
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class ShellIntegration
 {
     private const string Verb = "Medrar";

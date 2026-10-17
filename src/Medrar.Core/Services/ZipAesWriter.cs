@@ -133,9 +133,10 @@ internal static class ZipAesWriter
 
         // directorio central
         long cdStart = pos;
+        Span<byte> h = stackalloc byte[46];
         foreach (var e in cd)
         {
-            Span<byte> h = stackalloc byte[46];
+            h.Clear();
             BinaryPrimitives.WriteUInt32LittleEndian(h, 0x02014b50);
             BinaryPrimitives.WriteUInt16LittleEndian(h[4..], e.Method == 99 ? (ushort)0x0033 : (ushort)0x0014);
             BinaryPrimitives.WriteUInt16LittleEndian(h[6..], e.Method == 99 ? (ushort)51 : (ushort)20);
