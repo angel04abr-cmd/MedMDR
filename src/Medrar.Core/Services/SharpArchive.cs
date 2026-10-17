@@ -24,7 +24,8 @@ public sealed class SharpArchive : IArchive
     public string? Comment => null;
     public bool IsSolid { get; private set; }
     public bool IsEncrypted { get; private set; }
-    public bool HasEncryptedNames => false;
+    public bool HasEncryptedNames { get; private set; }
+    private bool _maskedCrc;     // RAR con contenido cifrado: la suma guardada va «enmascarada» con la clave
     public bool IsLocked => ArchiveEditor.IsReadOnlyFile(Path);
     public bool HasRecovery => File.Exists(RecoveryRecord.SidecarPathFor(Path));
     public long ArchiveSize { get; }
@@ -68,6 +69,10 @@ public sealed class SharpArchive : IArchive
         return false;
     }
 
+    /// <summary>Con contraseña dada, un fallo de descompresión al abrir una cabecera cifrada suele ser contraseña mala.</summary>
+    private static bool IsPasswordLooking(Exception ex) =>
+        ex.GetType().Name.Contains("DataError") || ex is InvalidDataException || ex is InvalidFormatException || ex is EndOfStreamException || ex is IndexOutOfRangeException || ex is ArgumentException;
+
     /// <summary>Falta contraseña (no se dio ninguna) o es incorrecta (se dio y no sirve).</summary>
     private MedrarException PasswordError() =>
         string.IsNullOrEmpty(_password) ? new PasswordRequiredException() : new WrongPasswordException();
@@ -81,7 +86,9 @@ public sealed class SharpArchive : IArchive
             var inner = _archive.Inner;
             FormatName = inner.Type.ToString().ToUpperInvariant();
             Format = embeddedFormat ?? ArchiveBuilder.FormatFromName(Path);
+            if (_password != null && _embeddedStream == null && Format == ArchiveFormat.SevenZip) HasEncryptedNames = ProbeEncryptedHeader();
             IsSolid = inner.IsSolid;
+            _maskedCrc = inner.Type == ArchiveType.Rar;
             int i = 0;
             foreach (var e in inner.Entries)
             {
@@ -105,10 +112,22 @@ public sealed class SharpArchive : IArchive
         }
         catch (MedrarException) { throw; }
         catch (Exception ex) when (IsPasswordProblem(ex)) { throw PasswordError(); }
+        catch (Exception ex) when (_password != null && IsPasswordLooking(ex)) { throw new WrongPasswordException(); }
         catch (Exception ex)
         {
             throw new UnsupportedFormatException("No se puede abrir el archivo: formato no reconocido o dañado. (" + ex.Message + ")");
         }
+    }
+
+    private bool ProbeEncryptedHeader()
+    {
+        try
+        {
+            using var a = ArchiveFactory.OpenArchive(Path, new ReaderOptions());
+            _ = a.Entries.Count();
+            return false;
+        }
+        catch { return true; }
     }
 
     public void ExtractEntries(IReadOnlyList<ArchiveEntry> entries, Func<ArchiveEntry, Stream?> openSink,
@@ -132,11 +151,16 @@ public sealed class SharpArchive : IArchive
                 using (var src = se.OpenEntryStream()) StreamUtil.CopyTo(src, crc);
                 // En RAR con contenido cifrado la suma guardada está «enmascarada» con la clave, así que no se puede
                 // comparar con el CRC32 normal: ahí solo se detectan errores por fallo de descifrado/descompresión.
-                if (!IsEncrypted && entry.Crc is uint c && c != 0 && crc.Crc != c)
+                if (!(IsEncrypted && _maskedCrc) && entry.Crc is uint c && c != 0 && crc.Crc != c)
+                {
+                    // un fichero cifrado cuya suma no cuadra casi siempre es una contraseña incorrecta
+                    if (entry.IsEncrypted) throw new WrongPasswordException();
                     err = new ChecksumException(entry.Path);
+                }
             }
             catch (MedrarException) { throw; }
             catch (Exception ex) when (IsPasswordProblem(ex)) { throw PasswordError(); }
+            catch (Exception ex) when (entry.IsEncrypted && ex.GetType().Name.Contains("DataError")) { throw string.IsNullOrEmpty(_password) ? new PasswordRequiredException() : new WrongPasswordException(); }
             catch (InvalidFormatException) { err = entry.IsEncrypted ? new WrongPasswordException() : new ChecksumException(entry.Path); }
             catch (InvalidDataException) { err = entry.IsEncrypted ? new WrongPasswordException() : new ChecksumException(entry.Path); }
             finally { sink.Dispose(); }

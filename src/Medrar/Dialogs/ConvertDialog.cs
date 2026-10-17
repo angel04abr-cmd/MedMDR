@@ -35,10 +35,11 @@ internal sealed class ConvertDialog : DialogBase
         var remove = UI.Button("Quitar", (_, _) => { foreach (var i in _files.SelectedItems.Cast<object>().ToList()) _files.Items.Remove(i); }, 80);
         _pw = UI.Button("Contraseña…", (_, _) =>
         {
-            if (_format.SelectedIndex > 1) { UI.Info(this, "La contraseña solo está disponible en los formatos .mdr y ZIP."); return; }
-            using var d = new PasswordDialog("Contraseña del archivo nuevo", "Escribe la contraseña:", true, _names, offerEncryptNames: _format.SelectedIndex == 0);
+            if (_format.SelectedIndex > 2) { UI.Info(this, "La contraseña solo está disponible en los formatos .mdr, ZIP y 7Z."); return; }
+            bool canNames = _format.SelectedIndex is 0 or 2;
+            using var d = new PasswordDialog("Contraseña del archivo nuevo", "Escribe la contraseña:", true, _names, offerEncryptNames: canNames);
             if (d.ShowDialog(this) != DialogResult.OK) return;
-            _password = d.Password; _names = d.EncryptNames && _format.SelectedIndex == 0;
+            _password = d.Password; _names = d.EncryptNames && canNames;
             _pwState.Text = _names ? "Contraseña establecida (nombres cifrados)" : "Contraseña establecida";
         }, 120);
         var browse = UI.Button("Examinar…", (_, _) => { var p = UI.PickFolder(this, _dest.Text, "Carpeta donde se guardarán los archivos convertidos"); if (p != null) _dest.Text = p; }, 96);
@@ -47,7 +48,7 @@ internal sealed class ConvertDialog : DialogBase
             bool mdr = _format.SelectedIndex == 0;
             _solid.Enabled = mdr;
             if (!mdr) _solid.Checked = false;
-            if (_format.SelectedIndex > 1) { _password = null; _names = false; _pwState.Text = "Sin contraseña"; }
+            if (_format.SelectedIndex > 2) { _password = null; _names = false; _pwState.Text = "Sin contraseña"; }
         };
         var col = UI.Column(
             UI.Label("Archivos que se convertirán:"), UI.Row(_files), UI.Row(add, remove),

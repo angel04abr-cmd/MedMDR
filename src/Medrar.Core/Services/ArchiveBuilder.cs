@@ -37,7 +37,7 @@ public static class ArchiveBuilder
     {
         ArchiveFormat.Mdr => (true, true, true, true),
         ArchiveFormat.Zip => (true, false, false, false),
-        ArchiveFormat.SevenZip => (false, false, false, false),
+        ArchiveFormat.SevenZip => (true, false, true, false),
         _ => (false, false, false, false),
     };
 
@@ -65,7 +65,10 @@ public static class ArchiveBuilder
                         if (!string.IsNullOrEmpty(o.Password)) ZipAesWriter.Write(fs, items, o, progress);
                         else WriteZip(fs, items, o, progress);
                         break;
-                    case ArchiveFormat.SevenZip: WriteSevenZip(fs, items, o, progress); break;
+                    case ArchiveFormat.SevenZip:
+                        if (!string.IsNullOrEmpty(o.Password)) SevenZipAesWriter.Write(fs, items, o, progress);
+                        else WriteSevenZip(fs, items, o, progress);
+                        break;
                     case ArchiveFormat.Tar: WriteTar(fs, items, progress); break;
                     case ArchiveFormat.TarGz:
                         using (var gz = new GZipStream(fs, ZLibLevel(o), leaveOpen: true)) WriteTar(gz, items, progress);
@@ -132,9 +135,7 @@ public static class ArchiveBuilder
     {
         var cap = Capabilities(o.Format);
         if (!string.IsNullOrEmpty(o.Password) && !cap.Password)
-            throw new UnsupportedFormatException(o.Format == ArchiveFormat.SevenZip
-                ? "Medrar todavía no cifra archivos .7z. Para proteger con contraseña usa .mdr o ZIP."
-                : "La contraseña solo está disponible en los formatos .mdr y ZIP.");
+            throw new UnsupportedFormatException("La contraseña solo está disponible en los formatos .mdr, ZIP y 7Z.");
         if (o.EncryptNames && !cap.EncryptNames && !string.IsNullOrEmpty(o.Password))
             o.EncryptNames = false;                                   // ZIP no puede ocultar los nombres: se cifra solo el contenido
         if (o.Format == ArchiveFormat.Gz && items.Count(i => !i.IsDirectory) != 1)

@@ -124,7 +124,7 @@ internal sealed class WizardForm : DialogBase
             if (string.IsNullOrWhiteSpace(_name.Text)) { UI.Warn(this, "Escribe el nombre del archivo."); return; }
             var fmt = _format.SelectedIndex switch { 1 => ArchiveFormat.Zip, 2 => ArchiveFormat.SevenZip, 3 => ArchiveFormat.TarGz, _ => ArchiveFormat.Mdr };
             if (_pwCheck.Checked && _password == null) { UI.Warn(this, "Pulsa «Contraseña…» para establecerla o desmarca la casilla."); return; }
-            if (_password != null && fmt is not (ArchiveFormat.Mdr or ArchiveFormat.Zip)) { UI.Warn(this, "La contraseña solo está disponible en los formatos .mdr y ZIP."); return; }
+            if (_password != null && fmt is not (ArchiveFormat.Mdr or ArchiveFormat.Zip or ArchiveFormat.SevenZip)) { UI.Warn(this, "La contraseña solo está disponible en los formatos .mdr, ZIP y 7Z."); return; }
             string path = Path.Combine(Destination, _name.Text.Trim() + ArchiveBuilder.Extension(fmt));
             if (File.Exists(path) && !UI.Confirm(this, $"«{Path.GetFileName(path)}» ya existe. ¿Reemplazarlo?")) return;
             try { Directory.CreateDirectory(Destination); if (File.Exists(path)) File.Delete(path); } catch (Exception ex) { UI.Error(this, UI.Describe(ex)); return; }

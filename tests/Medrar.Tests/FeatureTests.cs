@@ -42,7 +42,7 @@ public class FormatTests
     [Theory]
     [InlineData(ArchiveFormat.Tar)]
     [InlineData(ArchiveFormat.TarGz)]
-    [InlineData(ArchiveFormat.SevenZip)]
+    [InlineData(ArchiveFormat.Gz)]
     public void Password_rejected_for_formats_that_cannot_encrypt(ArchiveFormat f)
     {
         using var tmp = new TempDir();

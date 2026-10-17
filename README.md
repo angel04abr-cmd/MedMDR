@@ -1,7 +1,7 @@
 # Medrar
 
 Gestor de archivos comprimidos para Windows, escrito desde cero en C# (.NET 10, Windows Forms).
-**Crea** archivos **.mdr** (formato propio), **ZIP** (también con contraseña AES-256), **7Z**, **TAR**, **TAR.GZ** y **GZ**,
+**Crea** archivos **.mdr** (formato propio), **ZIP** y **7Z** (ambos también con contraseña AES-256), **TAR**, **TAR.GZ** y **GZ**,
 y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros.
 
 > Medrar es una versión propia inspirada en las funciones de un gestor clásico de archivos comprimidos.
@@ -37,8 +37,8 @@ comprimido para abrirlo como si fuera una carpeta. `Retroceso` sube un nivel. Pu
 **Extraer.** Abre o selecciona el archivo y pulsa **Extraer en** (`Alt+E`). `Alt+W` extrae sin hacer preguntas.
 También puedes **arrastrar ficheros desde dentro del archivo** a una carpeta del Explorador.
 
-**Contraseña.** En «Añadir» → *Establecer contraseña*. Vale para **.mdr** y **ZIP** (AES-256, lo abren 7-Zip, WinRAR y demás).
-En .mdr puedes marcar «Cifrar también los nombres» para que ni siquiera se vea la lista de ficheros; el ZIP no puede ocultar
+**Contraseña.** En «Añadir» → *Establecer contraseña*. Vale para **.mdr**, **ZIP** y **7Z** (AES-256; ZIP y 7Z los abren 7-Zip, WinRAR y demás).
+En .mdr y 7Z puedes marcar «Cifrar también los nombres» para que ni siquiera se vea la lista de ficheros; el ZIP no puede ocultar
 los nombres. Medrar **no guarda contraseñas**. Al abrir un archivo cifrado, Medrar pide la contraseña y comprueba que sea correcta.
 
 **Proteger y reparar.** «Registro de recuperación» añade datos de paridad (códigos Reed-Solomon) para reparar un archivo dañado
@@ -83,7 +83,7 @@ Un autoextraíble es de solo lectura en Medrar; *Herramientas → Quitar el mód
 ```
 mdr a -m4 -s -rr5 -hpMiClave datos.mdr carpeta\      crear .mdr (nivel 4, sólido, recuperación 5 %, contraseña y nombres cifrados)
 mdr a -fzip -pMiClave datos.zip carpeta\             ZIP con contraseña AES-256
-mdr a -f7z datos.7z carpeta\                         7Z
+mdr a -f7z -hpMiClave datos.7z carpeta\              7Z con contraseña y nombres cifrados
 mdr a -sfxfull -fzip datos carpeta\                  autoextraíble que incluye .NET
 mdr x -pMiClave -ocarpeta datos.mdr                  extraer
 mdr l datos.mdr     mdr t datos.mdr     mdr i datos.mdr     listar / comprobar / información
@@ -98,7 +98,9 @@ mdr -h                                                      ayuda completa
   (incluidos sólidos y con contraseña) y los **convierte** a .mdr, ZIP o 7Z. Para compartir, usa ZIP o 7Z.
 - **.mdr es un formato propio:** solo lo abren Medrar y su módulo autoextraíble. Está **documentado** en
   [`docs/FORMATO-MDR.md`](docs/FORMATO-MDR.md) para que otros puedan leerlo, pero ningún otro programa lo abre hoy.
-- **7Z se crea sin contraseña** (el escritor que usa Medrar no cifra). Para proteger con clave usa .mdr o ZIP.
+- **7Z con contraseña:** el cifrado de 7-Zip (AES-256-CBC) **no autentica** los datos: una clave mala o un archivo dañado se notan por
+  la suma de control o porque falla la descompresión, pero no hay una firma como en .mdr o ZIP. Los 7Z con contraseña se crean
+  siempre «sólidos» (un único bloque).
 - **ZIP con contraseña: los nombres de los ficheros no se cifran** (limitación del formato ZIP). Solo se cifra el contenido.
   En .mdr sí se pueden cifrar los nombres.
 - **El bloqueo es una protección contra accidentes, no seguridad:** se deshace desde Medrar o quitando «solo lectura».
@@ -119,7 +121,7 @@ mdr -h                                                      ayuda completa
   crear **.mdr** y **ZIP con contraseña**; editar (eliminar o renombrar) en **.mdr, ZIP con y sin contraseña, 7Z y TAR.GZ**;
   proteger, reparar un ZIP dañado y arrastrar fuera del archivo. Los autoextraíbles se probaron ejecutándolos (ligero y completo,
   con ZIP, 7Z, .mdr y contraseña). Crear 7Z, TAR.GZ y autoextraíbles se hizo con la línea de comandos y las pruebas automáticas
-  (el 7Z y el ZIP con contraseña además se abrieron con WinRAR), no desde el diálogo de la ventana.
+  (el 7Z, el 7Z con contraseña y el ZIP con contraseña además se abrieron con WinRAR), no desde el diálogo de la ventana.
 
 ## Qué guarda y qué envía
 
@@ -132,6 +134,8 @@ mdr -h                                                      ayuda completa
 
 - **.mdr:** AES-256-GCM por bloques de 64 KB (cada bloque se autentica) con clave derivada por PBKDF2-HMAC-SHA256, 200 000
   iteraciones y sal aleatoria de 16 bytes.
+- **7Z:** AES-256-CBC de 7-Zip (clave por SHA-256 repetido 2^19 veces con sal aleatoria; IV aleatorio), con cabecera cifrada
+  opcional para ocultar los nombres.
 - **ZIP:** cifrado AES-256 de WinZip (AE-2: clave por PBKDF2-HMAC-SHA1 con 1 000 iteraciones, **fijadas por el formato**, y
   firma HMAC-SHA1 de cada fichero). Medrar **verifica la firma** al leer, así que un ZIP manipulado se detecta. Es más débil
   frente a ataques de fuerza bruta que .mdr por esas pocas iteraciones: usa contraseñas largas.
@@ -146,7 +150,7 @@ src/Medrar.Core     Motor (sin interfaz): formatos, cifrado, recuperación, vol�
 src/Medrar          La aplicación de escritorio (Windows Forms, todos los iconos dibujados por código)
 src/Medrar.Cli      mdr.exe, línea de comandos
 src/Medrar.Sfx      Módulo autoextraíble
-tests/Medrar.Tests  98 pruebas automáticas del motor
+tests/Medrar.Tests  102 pruebas automáticas del motor
 docs/FORMATO-MDR.md Especificación del formato .mdr
 docs/ANALISIS.md    Qué se averiguó de WinRAR con ingeniería inversa y cómo se usó
 ```

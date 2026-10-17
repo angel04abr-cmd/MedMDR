@@ -24,14 +24,74 @@ public class SevenZipAndZipAesTests
             Assert.True(new FileInfo(p).Length < expected.Values.Sum(v => (long)v.Length) / 2);   // comprime de verdad
     }
 
-    [Fact]
-    public void SevenZip_with_password_is_rejected_clearly()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SevenZip_with_password_roundtrip(bool encryptNames)
     {
         using var tmp = new TempDir();
         string tree = Data.MakeTree(tmp.Path);
-        var o = new ArchiveOptions { Format = ArchiveFormat.SevenZip, Password = "x" };
-        var ex = Assert.Throws<UnsupportedFormatException>(() => ArchiveBuilder.Create(tmp.Combine("x.7z"), SourceCollector.Collect(new[] { tree }, o), o));
-        Assert.Contains(".7z", ex.Message);
+        var expected = Data.Snapshot(tree);
+        string p = Data.Create(tmp, "t.7z", new ArchiveOptions { Format = ArchiveFormat.SevenZip, Password = "clave ñ 7", EncryptNames = encryptNames, Level = 2 }, tree);
+
+        if (encryptNames)
+        {
+            Assert.Throws<PasswordRequiredException>(() => ArchiveOpener.Open(p));            // ni siquiera se puede listar
+            Assert.Throws<WrongPasswordException>(() => ArchiveOpener.Open(p, "otra"));
+        }
+        else
+        {
+            using var open = ArchiveOpener.Open(p);                                          // la lista se ve
+            Assert.True(open.IsEncrypted);
+            Assert.Throws<PasswordRequiredException>(() => Extractor.Test(open));
+            using var bad = ArchiveOpener.Open(p, "otra");
+            Assert.Throws<WrongPasswordException>(() => Extractor.Test(bad));
+        }
+        using var ok = ArchiveOpener.Open(p, "clave ñ 7");
+        Assert.Equal(encryptNames, ok.HasEncryptedNames);
+        var r = Extractor.Extract(ok, ok.Entries, new ExtractOptions { DestinationDir = tmp.Combine("o"), Overwrite = OverwriteMode.Overwrite });
+        Assert.True(r.Ok, string.Join(";", r.Errors));
+        Data.AssertSame(expected, Data.Snapshot(tmp.Combine("o", "arbol")));
+        Assert.Contains(ok.Entries, e => e.IsDirectory && e.Path == "arbol/vacia");        // carpetas vacías
+        Assert.Contains(ok.Entries, e => e.Path == "arbol/vacio.dat" && e.Size == 0);       // ficheros vacíos
+    }
+
+    [Fact]
+    public void SevenZip_with_password_does_not_leak_content_or_names()
+    {
+        using var tmp = new TempDir();
+        string tree = Data.MakeTree(tmp.Path);
+        string p = Data.Create(tmp, "t.7z", new ArchiveOptions { Format = ArchiveFormat.SevenZip, Password = "k", EncryptNames = true, Level = 1 }, tree);
+        var raw = File.ReadAllBytes(p);
+        Assert.True(raw.AsSpan().IndexOf("hola mundo"u8) < 0);
+        Assert.True(raw.AsSpan().IndexOf(System.Text.Encoding.Unicode.GetBytes("grande.txt")) < 0);
+    }
+
+    [Fact]
+    public void SevenZip_with_password_can_be_edited_and_keeps_password_and_hidden_names()
+    {
+        using var tmp = new TempDir();
+        string tree = Data.MakeTree(tmp.Path);
+        string p = Data.Create(tmp, "t.7z", new ArchiveOptions { Format = ArchiveFormat.SevenZip, Password = "k", EncryptNames = true }, tree);
+        var plan = new EditPlan(); plan.Delete.Add("arbol/texto.txt");
+        ArchiveEditor.Apply(p, "k", plan);
+        Assert.Throws<PasswordRequiredException>(() => ArchiveOpener.Open(p));
+        using var a = ArchiveOpener.Open(p, "k");
+        Assert.DoesNotContain(a.Entries, e => e.Path == "arbol/texto.txt");
+        Assert.True(a.HasEncryptedNames);
+        Assert.True(Extractor.Test(a).Ok);
+    }
+
+    [Fact]
+    public void SevenZip_with_password_and_only_empty_files_works()
+    {
+        using var tmp = new TempDir();
+        string dir = tmp.Combine("v"); Directory.CreateDirectory(Path.Combine(dir, "sub"));
+        File.WriteAllBytes(Path.Combine(dir, "a.txt"), Array.Empty<byte>());
+        var o = new ArchiveOptions { Format = ArchiveFormat.SevenZip, Password = "k" };
+        string p = ArchiveBuilder.Create(tmp.Combine("e.7z"), SourceCollector.Collect(new[] { dir }, o), o);
+        using var a = ArchiveOpener.Open(p, "k");
+        Assert.Equal(3, a.Entries.Count);                       // la carpeta, su subcarpeta y el fichero vacío
     }
 
     [Theory]
