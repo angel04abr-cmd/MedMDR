@@ -1,0 +1,52 @@
+name: Probar el instalador MSI
+
+# Construye el .msi, lo instala en silencio en un Windows limpio, comprueba ficheros, asociaciones y menú del botón derecho,
+# y lo desinstala comprobando que no queda nada.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['installer/**', 'build.ps1', '.github/workflows/msi-test.yml']
+
+jobs:
+  msi:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Construir el instalador
+        shell: pwsh
+        run: ./build.ps1 -Installer
+
+      - name: Instalar, comprobar y desinstalar
+        shell: pwsh
+        run: |
+          $msi = (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1).FullName
+          $p = Start-Process msiexec -ArgumentList '/i', "`"$msi`"", 'ADDLOCAL=ALL', '/qn', '/l*v', "`"$env:RUNNER_TEMP\inst.log`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\inst.log" -Tail 60; throw "msiexec salió con $($p.ExitCode)" }
+          $dir = "$env:LOCALAPPDATA\Programs\Medrar"
+          $fallos = @()
+          foreach ($f in 'Medrar.exe', 'mdr.exe', 'Medrar.Sfx.exe', 'Medrar.Sfx.Full.exe') { if (-not (Test-Path "$dir\$f")) { $fallos += "falta $f" } }
+          foreach ($k in 'Software\Medrar', 'Software\Classes\.mdr', 'Software\Classes\Medrar.Archive\shell\open\command',
+                         'Software\Classes\Directory\shell\Medrar.Add\command', 'Software\Classes\Directory\Background\shell\Medrar.Open\command') {
+            if (-not (Test-Path -LiteralPath "HKCU:\$k")) { $fallos += "falta la clave HKCU\$k" }
+          }
+          if (-not (Test-Path -LiteralPath 'HKCU:\Software\Classes\*\shell\Medrar.Add\command')) { $fallos += 'falta la clave del menú de ficheros' }
+          if ((Get-ItemProperty HKCU:\Software\Medrar).Installer -ne 'msi') { $fallos += 'falta la marca Installer=msi' }
+          & "$dir\mdr.exe" -h | Select-Object -First 1
+          if ($fallos) { $fallos; throw 'La instalación no dejó todo lo esperado.' }
+          Write-Host 'Instalación correcta'
+
+          $p = Start-Process msiexec -ArgumentList '/x', "`"$msi`"", '/qn' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "la desinstalación salió con $($p.ExitCode)" }
+          $restos = @()
+          if (Test-Path $dir) { $restos += $dir }
+          foreach ($k in 'Software\Medrar', 'Software\Classes\.mdr', 'Software\Classes\Medrar.Archive', 'Software\Classes\Directory\shell\Medrar.Add') {
+            if (Test-Path -LiteralPath "HKCU:\$k") { $restos += "HKCU\$k" }
+          }
+          if ($restos) { $restos; throw 'La desinstalación dejó restos.' }
+          Write-Host 'Desinstalación limpia'
