@@ -9,11 +9,25 @@ y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros
 
 ![Ventana principal](docs/capturas/ventana-archivo.png)
 
-## Descargar y abrir
+## Descargar e instalar
 
-Ve a **Releases** (a la derecha en GitHub), baja `Medrar-<versión>-win-x64.zip`, descomprímelo y abre `Medrar.exe`.
-No hace falta instalar nada más que el [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/download/dotnet/10.0)
-(Windows suele mostrar un aviso con el enlace si falta).
+Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-Setup-<versión>.exe`**: es el instalador.
+
+1. Ábrelo y sigue el asistente (está en español). Por defecto se instala **solo para tu usuario** y no pide permisos de
+   administrador; si quieres instalarlo para todos los usuarios, el asistente te lo permite.
+2. Puedes marcar si quieres asociar los archivos `.mdr`, añadir «Añadir a un archivo con Medrar» al menú del botón derecho y
+   crear un acceso directo en el escritorio.
+3. Si falta el [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/download/dotnet/10.0), el instalador te avisa y te
+   lleva a la página de descarga.
+4. Para **actualizar**, baja el instalador de la versión nueva y ejecútalo encima (conserva tu configuración).
+5. Para **desinstalar**: Configuración de Windows → Aplicaciones → Medrar. Tu configuración (`%APPDATA%\Medrar`) no se borra.
+
+> El instalador **no está firmado digitalmente**, así que Windows SmartScreen puede mostrar «Windows protegió su PC»:
+> pulsa *Más información → Ejecutar de todos modos*. (Firmar exige un certificado de pago.)
+> El repositorio es privado: para descargar hay que iniciar sesión en GitHub con la cuenta que tiene acceso.
+
+**Sin instalar (portable):** la release también trae `Medrar-<versión>-win-x64.zip`; descomprímelo y abre `Medrar.exe`.
+Medrar **no se actualiza solo** (no usa la red a propósito): las versiones nuevas se descargan de Releases.
 
 | Fichero | Para qué sirve |
 |---|---|
@@ -150,6 +164,7 @@ src/Medrar.Core     Motor (sin interfaz): formatos, cifrado, recuperación, vol�
 src/Medrar          La aplicación de escritorio (Windows Forms, todos los iconos dibujados por código)
 src/Medrar.Cli      mdr.exe, línea de comandos
 src/Medrar.Sfx      Módulo autoextraíble
+installer/          Script del instalador (Inno Setup)
 tests/Medrar.Tests  102 pruebas automáticas del motor
 docs/FORMATO-MDR.md Especificación del formato .mdr
 docs/ANALISIS.md    Qué se averiguó de WinRAR con ingeniería inversa y cómo se usó
@@ -161,7 +176,7 @@ Requisitos: [.NET SDK 10](https://dotnet.microsoft.com/download).
 
 ```
 powershell -ExecutionPolicy Bypass -File build.ps1            compila y deja todo en dist\Medrar
-powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip ejecuta las pruebas y crea el .zip de la versión
+powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip -Installer   pruebas + .zip + instalador (necesita Inno Setup)
 dotnet test tests\Medrar.Tests                                solo las pruebas
 ```
 
@@ -172,6 +187,6 @@ comprobar nada** (no se marcan como omitidas).
 
 1. Cambia `<Version>` en `src/Medrar/Medrar.csproj` (y en los otros `.csproj` si quieres que coincidan).
 2. `git commit`, `git tag v1.1.0` y `git push origin main --tags`.
-3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el `.zip`.
+3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el instalador y el `.zip`.
 
 Bibliotecas externas: **SharpCompress** (MIT) y **System.IO.Hashing** (MIT) — ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

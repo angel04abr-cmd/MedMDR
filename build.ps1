@@ -4,9 +4,10 @@
 #   Medrar.Sfx.Full.exe -> módulo autoextraíble completo (incluye .NET; no necesita nada instalado)
 #   mdr.exe             -> versión de línea de comandos
 # Requisitos: .NET SDK 10 (https://dotnet.microsoft.com/download).
-# Uso:  powershell -ExecutionPolicy Bypass -File build.ps1 [-Test] [-Zip]
+# Con -Installer genera además el instalador Medrar-Setup-<versión>.exe (necesita Inno Setup 6 o 7).
+# Uso:  powershell -ExecutionPolicy Bypass -File build.ps1 [-Test] [-Zip] [-Installer]
 
-param([switch]$Test, [switch]$Zip)
+param([switch]$Test, [switch]$Zip, [switch]$Installer)
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $dist = Join-Path $root 'dist\Medrar'
@@ -33,8 +34,18 @@ Copy-Item (Join-Path $root 'dist\_cli\mdr.exe') $dist
 Remove-Item (Join-Path $root 'dist\_sfx'), (Join-Path $root 'dist\_sfxfull'), (Join-Path $root 'dist\_cli') -Recurse -Force
 foreach ($f in 'README.md', 'THIRD-PARTY-NOTICES.md') { if (Test-Path (Join-Path $root $f)) { Copy-Item (Join-Path $root $f) $dist } }
 
+$version = ([xml](Get-Content (Join-Path $root 'src\Medrar\Medrar.csproj'))).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+
+if ($Installer) {
+    $iscc = @("$env:ProgramFiles\Inno Setup 7\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe", "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $iscc) { $c = Get-Command ISCC.exe -ErrorAction SilentlyContinue; if ($c) { $iscc = $c.Source } }
+    if (-not $iscc) { throw 'No se encuentra Inno Setup (ISCC.exe). Instálalo desde https://jrsoftware.org/isdl.php' }
+    & $iscc "/DAppVersion=$version" (Join-Path $root 'installer\Medrar.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'Fallo al crear el instalador.' }
+    Write-Host "Instalador: $(Join-Path $root "dist\Medrar-Setup-$version.exe")" -ForegroundColor Green
+}
+
 if ($Zip) {
-    $version = ([xml](Get-Content (Join-Path $root 'src\Medrar\Medrar.csproj'))).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
     $zipPath = Join-Path $root "dist\Medrar-$version-win-x64.zip"
     if (Test-Path $zipPath) { Remove-Item $zipPath }
     Compress-Archive -Path (Join-Path $dist '*') -DestinationPath $zipPath

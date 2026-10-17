@@ -18,9 +18,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Pruebas y paquete
+      - name: Instalar Inno Setup (para crear el instalador)
         shell: pwsh
-        run: ./build.ps1 -Test -Zip
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") -and -not (Test-Path "$env:ProgramFiles\Inno Setup 7\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+
+      - name: Pruebas, instalador y paquete
+        shell: pwsh
+        run: ./build.ps1 -Test -Zip -Installer
 
       - name: Crear (o actualizar) la release
         shell: pwsh
@@ -29,12 +36,14 @@ jobs:
         run: |
           $tag = '${{ github.ref_name }}'
           $zip = Get-ChildItem dist -Filter 'Medrar-*-win-x64.zip' | Select-Object -First 1
+          $setup = Get-ChildItem dist -Filter 'Medrar-Setup-*.exe' | Select-Object -First 1
           if (-not $zip) { throw 'No se encontró el paquete .zip' }
+          if (-not $setup) { throw 'No se encontró el instalador' }
           $ErrorActionPreference = 'Continue'
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag $zip.FullName --clobber          # la release ya existe: solo se sube el paquete
+            gh release upload $tag $setup.FullName $zip.FullName --clobber   # la release ya existe: solo se suben los ficheros
           } else {
-            gh release create $tag $zip.FullName --title "Medrar $tag" --generate-notes
+            gh release create $tag $setup.FullName $zip.FullName --title "Medrar $tag" --generate-notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release' }
