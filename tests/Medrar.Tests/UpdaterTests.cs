@@ -6,6 +6,7 @@ using Medrar.Core;
 
 namespace Medrar.Tests;
 
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public class UpdaterTests
 {
     [Theory]
