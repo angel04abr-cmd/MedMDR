@@ -33,6 +33,6 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## WinRAR
 
-Medrar **no contiene código, imágenes, iconos ni textos de WinRAR** ni de RARLAB. El análisis que se hizo de WinRAR
-(ver `docs/ANALISIS.md`) sirvió solo para entender qué funciones ofrece. Medrar lee archivos RAR con SharpCompress y
+Medrar **no contiene código, imágenes, iconos ni textos de WinRAR** ni de RARLAB. Observar qué funciones ofrece WinRAR
+sirvió solo para decidir qué funciones tendría Medrar. Medrar lee archivos RAR con SharpCompress y
 **no crea** archivos RAR. «WinRAR» y «RAR» son marcas de sus propietarios.

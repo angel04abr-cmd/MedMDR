@@ -197,7 +197,6 @@ src/Medrar.Sfx      Módulo autoextraíble
 installer/          Instalador MSI (WiX Toolset 6)
 tests/Medrar.Tests  127 pruebas automáticas del motor y del actualizador
 docs/FORMATO-MDR.md Especificación del formato .mdr
-docs/ANALISIS.md    Qué se averiguó de WinRAR con ingeniería inversa y cómo se usó
 ```
 
 ### Compilar y probar
