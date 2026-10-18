@@ -219,4 +219,8 @@ comprobar nada** (no se marcan como omitidas).
 3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el `.msi`, el `.zip` y
    `SHA256SUMS.txt`. **Los tres ficheros son necesarios** para que las copias ya instaladas se actualicen solas.
 
+## Licencia
+
+Medrar es software libre con licencia **MIT** (ver [`LICENSE`](LICENSE)): puedes usarlo, copiarlo y modificarlo, conservando el aviso.
+
 Bibliotecas externas: **SharpCompress** (MIT), **System.IO.Hashing** (MIT) y **System.Security.Cryptography.ProtectedData** (MIT) — ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
