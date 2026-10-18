@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\Medrar.Core\Medrar.Core.csproj" />
@@ -15,7 +15,7 @@
     <AssemblyName>Medrar</AssemblyName>
     <RootNamespace>Medrar.App</RootNamespace>
     <ApplicationIcon>Resources/medrar.ico</ApplicationIcon>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <NoWarn>$(NoWarn);WFO5001;WFO1000</NoWarn>
   </PropertyGroup>
 

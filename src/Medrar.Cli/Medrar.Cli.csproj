@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\Medrar.Core\Medrar.Core.csproj" />
@@ -11,7 +11,7 @@
     <RootNamespace>Medrar.Cli</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
   </PropertyGroup>
 
 </Project>

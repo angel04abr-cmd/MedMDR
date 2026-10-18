@@ -25,7 +25,6 @@ Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-<versión>-x64.msi`*
 
 > El instalador **no está firmado digitalmente**, así que Windows SmartScreen puede mostrar «Windows protegió su PC»:
 > pulsa *Más información → Ejecutar de todos modos*. (Firmar exige un certificado de pago.)
-> El repositorio es privado: para descargar hay que iniciar sesión en GitHub con la cuenta que tiene acceso.
 >
 > **Si tenías Medrar 1.1.x instalado con el antiguo instalador `.exe`** (Medrar-Setup-….exe), desinstálalo antes
 > (Configuración de Windows → Aplicaciones → Medrar). El `.msi` nuevo lo detecta y se niega a instalarse encima, porque las
@@ -42,11 +41,11 @@ La copia portable avisa de las versiones nuevas, pero no se instala sola (solo l
 - Al aceptar, descarga el `.msi`, **comprueba su suma SHA-256** con la que la release publica en `SHA256SUMS.txt` (si no
   coincide, o la release no trae las sumas, **no instala nada**), cierra Medrar, instala la versión nueva encima (con una
   barra de progreso de Windows) y vuelve a abrir Medrar.
-- **El repositorio es privado**, así que GitHub no deja ver las versiones sin identificarse. Hay que crear una vez un
-  **token de acceso de solo lectura** (GitHub → Settings → Developer settings → *Fine-grained tokens*, solo para el
-  repositorio `Medrar`, permiso **Contents: Read-only**) y pegarlo en *Configuración → Actualizaciones*. Se guarda **cifrado con
-  tu cuenta de Windows (DPAPI)** y solo se envía a `api.github.com`. Sin token, la búsqueda falla con un mensaje claro y no
-  molesta al abrir el programa. Si algún día el repositorio pasa a ser público, no hace falta token.
+- **No hace falta ninguna cuenta ni token**: el repositorio es público y la consulta es anónima. Solo si GitHub limita las
+  consultas (muchas peticiones desde la misma red) o si algún día el repositorio vuelve a ser privado, se puede pegar un
+  **token de acceso de solo lectura** (GitHub → Settings → Developer settings → *Fine-grained tokens*, permiso
+  **Contents: Read-only**) en *Configuración → Actualizaciones*. Se guarda **cifrado con tu cuenta de Windows (DPAPI)** y solo
+  se envía a `api.github.com`. Si la búsqueda falla, lo dice con un mensaje claro y no molesta al abrir el programa.
 - Al actualizarse, el instalador vuelve a aplicar los componentes por defecto: si habías quitado la asociación `.mdr` o el menú
   del botón derecho, vuelven a aparecer (se quitan en *Configuración → Integración*); el acceso directo del escritorio solo si lo
   habías marcado.
@@ -155,7 +154,7 @@ mdr -h                                                      ayuda completa
   error solo se detecta si falla el descifrado o la descompresión. Probado con RAR 5 creados por WinRAR 7.23; RAR 4 cifrados, no.
 - **Actualizaciones:** solo la copia instalada con el `.msi` se actualiza sola. El `.msi` no está firmado, así que la garantía de que
   es el correcto es la suma SHA-256 publicada en la misma release de GitHub: protege de descargas dañadas o alteradas por el camino,
-  pero **no** de alguien que controle el propio repositorio. Mientras el repositorio sea privado hace falta el token de solo lectura.
+  pero **no** de alguien que controle el propio repositorio.
   La actualización se probó con el código real contra un servidor GitHub falso local y con el instalador real (esperar a que se
   cierre Medrar, instalar encima y reabrir); los cuadros de aviso y de progreso no se probaron manualmente en la ventana.
 - **Qué se probó a mano en la ventana real:** abrir, ver, comprobar y extraer con **.mdr, ZIP con contraseña y RAR con contraseña**;

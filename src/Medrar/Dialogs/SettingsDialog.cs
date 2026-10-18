@@ -85,7 +85,7 @@ internal sealed class SettingsDialog : DialogBase
             UI.Label("Token de acceso de GitHub (solo lectura):"),
             UI.Row(_token, UI.Button("Quitar", (_, _) => { _clearToken = true; _token.Text = ""; _tokenState.Text = "Se quitará el token al aceptar."; }, 80)),
             _tokenState,
-            UI.Label("El repositorio de Medrar es privado: sin un token, GitHub no deja ver las versiones. Créalo en GitHub > Settings >\nDeveloper settings > Fine-grained tokens, solo para el repositorio Medrar, con el permiso «Contents: Read-only».\nSe guarda cifrado con tu cuenta de Windows (DPAPI) y solo se envía a api.github.com.", muted: true));
+            UI.Label("Normalmente no hace falta ningún token: el repositorio de Medrar es público. Solo sirve si GitHub limita las consultas\ndesde tu red. Créalo en GitHub > Settings > Developer settings > Fine-grained tokens, con el permiso «Contents: Read-only».\nSe guarda cifrado con tu cuenta de Windows (DPAPI) y solo se envía a api.github.com.", muted: true));
 
         var integ = UI.Page(
             UI.Label("Integración con el Explorador de Windows", true),

@@ -217,7 +217,7 @@ public sealed class UpdateService : IDisposable
             {
                 HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden or HttpStatusCode.NotFound =>
                     new UpdateException(UpdateFailure.NoAccess, _token == null
-                        ? "GitHub no deja ver las versiones. Si el repositorio es privado, indica un token de acceso de solo lectura en Configuración > Actualizaciones."
+                        ? "GitHub no deja ver las versiones (puede que haya limitado las consultas desde tu red). Inténtalo más tarde o indica un token de acceso de solo lectura en Configuración > Actualizaciones."
                         : "GitHub rechazó el acceso. Revisa que el token de Configuración > Actualizaciones sea válido, no haya caducado y tenga permiso de lectura sobre el repositorio."),
                 _ => new UpdateException(UpdateFailure.Network, $"GitHub respondió con un error ({(int)code}). Inténtalo más tarde.")
             };
