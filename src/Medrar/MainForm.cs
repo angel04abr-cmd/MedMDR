@@ -95,6 +95,12 @@ internal sealed partial class MainForm : Form
             else GoFolder(start);
         };
         Shown += (_, _) => Updates.CheckInBackground(this, _settings);
+        if (Program.PendingThemeFlip is { } flip)
+        {
+            var t = new System.Windows.Forms.Timer { Interval = 2000 };
+            t.Tick += (_, _) => { t.Stop(); ChangeTheme(flip); };
+            Shown += (_, _) => t.Start();
+        }
     }
 
     // ---------------------------------------------------------------- construcción

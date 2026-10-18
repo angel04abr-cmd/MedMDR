@@ -678,16 +678,36 @@ internal sealed partial class MainForm
         }
     }
 
-    private void ChangeTheme(ThemeMode mode)
+    internal void ChangeTheme(ThemeMode mode)
     {
+        bool wasDark = Theme.IsDark;
+        bool willBeDark = mode == ThemeMode.Dark || (mode == ThemeMode.System && Theme.SystemUsesDark());
         _settings.Theme = mode;
-        Program.SaveSettings();
+        if (!Program.IsSnapshot) Program.SaveSettings();
+        // WinForms no permite pasar de oscuro a claro (o al revés) con ventanas ya creadas: los controles existentes siguen
+        // pintándose con el modo anterior (cabecera de la lista, botones...). Entre esos dos modos se reabre la ventana.
+        if (willBeDark != wasDark && !Program.IsSnapshot && RestartWindow()) return;
         Theme.Apply(mode);
         Theme.Style(this);
         Theme.StyleMenu(_menu.Items);
         _tools.Renderer = new ToolStripProfessionalRenderer();
         Theme.Style(this);
         Invalidate(true);
+    }
+
+    /// <summary>Abre una ventana nueva de Medrar en el mismo sitio (archivo o carpeta) y cierra esta. False si no pudo.</summary>
+    private bool RestartWindow()
+    {
+        try
+        {
+            string target = InArchive ? _session!.Path : _folder;
+            var psi = new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath ?? Application.ExecutablePath) { UseShellExecute = false };
+            if (!string.IsNullOrEmpty(target)) psi.ArgumentList.Add(target);
+            System.Diagnostics.Process.Start(psi);
+            Close();
+            return true;
+        }
+        catch { return false; }
     }
 
     private void ExportSettings()

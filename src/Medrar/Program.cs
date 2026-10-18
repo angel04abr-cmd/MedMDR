@@ -5,6 +5,8 @@ namespace Medrar.App;
 internal static class Program
 {
     public static AppSettings Settings { get; private set; } = new();
+    public static ThemeMode? PendingThemeFlip { get; private set; }   // solo pruebas (--then-theme): cambia de tema 2 s después de abrir
+    public static bool IsSnapshot { get; private set; }   // modo de capturas de pantalla (pruebas): no toca la configuración guardada
 
     [STAThread]
     static int Main(string[] args)
@@ -17,6 +19,8 @@ internal static class Program
 
         Settings = SettingsStore.Load();
         var launch = Launch.Parse(args);
+        IsSnapshot = launch.Mode == "snapshot";
+        PendingThemeFlip = launch.Mode == "main" ? launch.ThenTheme : null;
         if (launch.ThemeOverride != null) Settings.Theme = launch.ThemeOverride.Value;   // solo para pruebas; no se guarda
         ApplicationConfiguration.Initialize();
         Theme.Apply(Settings.Theme);
@@ -57,6 +61,7 @@ internal sealed class Launch
     public string? SnapshotDialog;
     public string? Password;
     public ThemeMode? ThemeOverride;
+    public ThemeMode? ThenTheme;               // solo pruebas: cambia de tema con la ventana abierta, antes de la captura
 
     public static Launch Parse(string[] args)
     {
@@ -73,6 +78,7 @@ internal sealed class Launch
                 case "--dialog": l.SnapshotDialog = args[++i]; break;
                 case "--password": l.Password = args[++i]; break;
                 case "--theme": l.ThemeOverride = args[++i] == "dark" ? ThemeMode.Dark : ThemeMode.Light; break;
+                case "--then-theme": l.ThenTheme = args[++i] == "dark" ? ThemeMode.Dark : ThemeMode.Light; break;
                 default: l.Paths.Add(args[i]); break;
             }
         }

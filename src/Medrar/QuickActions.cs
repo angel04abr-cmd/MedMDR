@@ -108,6 +108,7 @@ internal static class SnapshotTool
         form.Location = new Point(40, 40);
         form.Show();
         Pump(l.SnapshotDialog == "benchmark" ? 9000 : 1800);
+        if (l.ThenTheme != null && form is MainForm main) { main.ChangeTheme(l.ThenTheme.Value); Pump(1200); }
         Save(form, l.SnapshotFile!);
         form.Close();
         return 0;
