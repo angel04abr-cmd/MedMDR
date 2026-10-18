@@ -2,12 +2,12 @@
 <!--
   Instalador MSI de Medrar (WiX Toolset). Se compila con:
     .tools\wix.exe build installer\Medrar.wxs -arch x64 -d Version=1.2.0 -d Source=dist\Medrar -ext WixToolset.UI.wixext -culture es-ES -o dist\Medrar-1.2.0-x64.msi
-  (build.ps1 -Installer lo hace solo). Por defecto se instala SOLO PARA EL USUARIO (sin permisos de administrador), en
-  %LocalAppData%\Programs\Medrar, lo que permite que las actualizaciones automáticas se instalen sin pedir elevación.
+  (build.ps1 -Installer lo hace solo). Se instala PARA TODO EL EQUIPO, en C:\Program Files\Medrar: pide permisos de
+  administrador (también las actualizaciones automáticas) y deja el acceso en el menú Inicio con la opción «Desinstalar».
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
   <Package Name="Medrar" Manufacturer="Medrar" Version="$(Version)" UpgradeCode="7B2D1A44-9E3C-4F6B-8A51-2C9D0E5F7A13"
-           Scope="perUser" Language="1034" InstallerVersion="500" Compressed="yes">
+           Scope="perMachine" Language="1034" InstallerVersion="500" Compressed="yes">
     <SummaryInformation Description="Gestor de archivos comprimidos" Manufacturer="Medrar" />
 
     <MajorUpgrade DowngradeErrorMessage="Ya hay una versión más nueva de Medrar instalada." />
@@ -31,6 +31,13 @@
     <Launch Condition="Installed OR (NOT INNO_ANTIGUO_64 AND NOT INNO_ANTIGUO_32 AND NOT INNO_ANTIGUO_USR)"
             Message="Hay una versión anterior de Medrar instalada con el instalador .exe. Desinstálala primero (Configuración de Windows, Aplicaciones, Medrar) y vuelve a ejecutar este instalador. Tus archivos y tu configuración no se borran." />
     <?endif?>
+    <!-- Las versiones 1.2.x se instalaban solo para el usuario; no se pueden actualizar a una instalación para todo el equipo. -->
+    <Property Id="MEDRAR_USUARIO_ANTIGUO">
+      <RegistrySearch Id="BuscaMedrarUsuario" Root="HKCU" Key="SOFTWARE\Medrar" Name="Installer" Type="raw" />
+    </Property>
+    <Launch Condition="Installed OR NOT MEDRAR_USUARIO_ANTIGUO"
+            Message="Hay una versión anterior de Medrar instalada solo para tu usuario (versiones 1.2.x). Desinstálala primero (Configuración de Windows, Aplicaciones, Medrar) y vuelve a ejecutar este instalador, que instala Medrar para todo el equipo. Tus archivos y tu configuración no se borran." />
+
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 
     <Icon Id="MedrarIcon" SourceFile="src\Medrar\Resources\medrar.ico" />
@@ -56,10 +63,8 @@
   </Package>
 
   <Fragment>
-    <StandardDirectory Id="LocalAppDataFolder">
-      <Directory Id="ProgramsDir" Name="Programs">
-        <Directory Id="INSTALLFOLDER" Name="Medrar" />
-      </Directory>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Medrar" />
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder" />
     <StandardDirectory Id="DesktopFolder" />
@@ -69,12 +74,15 @@
     <ComponentGroup Id="Programa" Directory="INSTALLFOLDER">
       <Component Id="MedrarExe" Guid="*">
         <File Id="MedrarExeFile" Source="$(Source)\Medrar.exe" KeyPath="yes" />
+        <!-- Debe apuntar al .exe: así Windows relaciona el acceso con el programa instalado y ofrece «Desinstalar» en el menú Inicio -->
         <Shortcut Id="AccesoInicio" Directory="ProgramMenuFolder" Name="Medrar" Description="Gestor de archivos comprimidos"
-                  WorkingDirectory="INSTALLFOLDER" Icon="MedrarIcon" Advertise="no" />
+                  Target="[INSTALLFOLDER]Medrar.exe" WorkingDirectory="INSTALLFOLDER" Icon="MedrarIcon" Advertise="no" />
+        <!-- «Abrir con → Medrar» del Explorador -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\Medrar.exe" Name="FriendlyAppName" Type="string" Value="Medrar" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\Medrar.exe\shell\open\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; &quot;%1&quot;" />
         <!-- Marca que la app lee para saber que está instalada con el MSI (y puede actualizarse sola) -->
-        <RegistryValue Root="HKCU" Key="Software\Medrar" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" />
-        <RegistryValue Root="HKCU" Key="Software\Medrar" Name="Installer" Type="string" Value="msi" />
-        <RemoveFolder Id="QuitarProgramsDir" Directory="INSTALLFOLDER" On="uninstall" />
+        <RegistryValue Root="HKLM" Key="Software\Medrar" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" />
+        <RegistryValue Root="HKLM" Key="Software\Medrar" Name="Installer" Type="string" Value="msi" />
       </Component>
       <Component Id="MdrExe" Guid="*">
         <File Source="$(Source)\mdr.exe" KeyPath="yes" />
@@ -96,13 +104,13 @@
     <Component Id="AccesoEscritorio" Directory="INSTALLFOLDER" Guid="*">
       <Shortcut Id="AccesoEscritorioLnk" Directory="DesktopFolder" Name="Medrar" Description="Gestor de archivos comprimidos"
                 Target="[INSTALLFOLDER]Medrar.exe" WorkingDirectory="INSTALLFOLDER" Icon="MedrarIcon" Advertise="no" />
-      <RegistryValue Root="HKCU" Key="Software\Medrar" Name="Escritorio" Type="integer" Value="1" KeyPath="yes" />
+      <RegistryValue Root="HKLM" Key="Software\Medrar" Name="Escritorio" Type="integer" Value="1" KeyPath="yes" />
     </Component>
 
     <!-- Asociación de .mdr y sus órdenes en el menú contextual del archivo -->
     <Component Id="AsociacionMdr" Directory="INSTALLFOLDER" Guid="*">
-      <RegistryValue Root="HKCU" Key="Software\Classes\.mdr" Type="string" Value="Medrar.Archive" KeyPath="yes" />
-      <RegistryKey Root="HKCU" Key="Software\Classes\Medrar.Archive">
+      <RegistryValue Root="HKLM" Key="Software\Classes\.mdr" Type="string" Value="Medrar.Archive" KeyPath="yes" />
+      <RegistryKey Root="HKLM" Key="Software\Classes\Medrar.Archive">
         <RegistryValue Type="string" Value="Archivo Medrar" />
         <RegistryValue Key="DefaultIcon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
         <RegistryValue Key="shell\open" Type="string" Value="Abrir con Medrar" />
@@ -122,15 +130,15 @@
 
     <!-- «Añadir a un archivo con Medrar» en el menú del botón derecho -->
     <Component Id="MenuContextualReg" Directory="INSTALLFOLDER" Guid="*">
-      <RegistryValue Root="HKCU" Key="Software\Classes\*\shell\Medrar.Add" Type="string" Value="Añadir a un archivo con Medrar…" KeyPath="yes" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\*\shell\Medrar.Add" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\*\shell\Medrar.Add\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; --add &quot;%1&quot;" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\shell\Medrar.Add" Type="string" Value="Añadir a un archivo con Medrar…" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\shell\Medrar.Add" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\shell\Medrar.Add\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; --add &quot;%1&quot;" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\Background\shell\Medrar.Open" Type="string" Value="Abrir esta carpeta en Medrar" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\Background\shell\Medrar.Open" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
-      <RegistryValue Root="HKCU" Key="Software\Classes\Directory\Background\shell\Medrar.Open\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; &quot;%V&quot;" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\*\shell\Medrar.Add" Type="string" Value="Añadir a un archivo con Medrar…" KeyPath="yes" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\*\shell\Medrar.Add" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\*\shell\Medrar.Add\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; --add &quot;%1&quot;" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\shell\Medrar.Add" Type="string" Value="Añadir a un archivo con Medrar…" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\shell\Medrar.Add" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\shell\Medrar.Add\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; --add &quot;%1&quot;" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\Background\shell\Medrar.Open" Type="string" Value="Abrir esta carpeta en Medrar" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\Background\shell\Medrar.Open" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot;,0" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Directory\Background\shell\Medrar.Open\command" Type="string" Value="&quot;[INSTALLFOLDER]Medrar.exe&quot; &quot;%V&quot;" />
     </Component>
   </Fragment>
 </Wix>

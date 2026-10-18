@@ -1,7 +1,8 @@
 name: Probar el instalador MSI
 
-# Construye el .msi, lo instala en silencio en un Windows limpio, comprueba ficheros, asociaciones y menú del botón derecho,
-# y lo desinstala comprobando que no queda nada.
+# Construye el .msi, lo instala en silencio en un Windows limpio (como administrador, igual que haría el usuario tras el aviso de
+# permisos), comprueba ficheros, acceso del menú Inicio, asociaciones y menú del botón derecho, y lo desinstala comprobando que
+# no queda nada.
 on:
   workflow_dispatch:
   push:
@@ -28,15 +29,23 @@ jobs:
           $msi = (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1).FullName
           $p = Start-Process msiexec -ArgumentList '/i', "`"$msi`"", 'ADDLOCAL=ALL', '/qn', '/l*v', "`"$env:RUNNER_TEMP\inst.log`"" -Wait -PassThru
           if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\inst.log" -Tail 60; throw "msiexec salió con $($p.ExitCode)" }
-          $dir = "$env:LOCALAPPDATA\Programs\Medrar"
+          $dir = "$env:ProgramFiles\Medrar"
           $fallos = @()
           foreach ($f in 'Medrar.exe', 'mdr.exe', 'Medrar.Sfx.exe', 'Medrar.Sfx.Full.exe') { if (-not (Test-Path "$dir\$f")) { $fallos += "falta $f" } }
           foreach ($k in 'Software\Medrar', 'Software\Classes\.mdr', 'Software\Classes\Medrar.Archive\shell\open\command',
-                         'Software\Classes\Directory\shell\Medrar.Add\command', 'Software\Classes\Directory\Background\shell\Medrar.Open\command') {
-            if (-not (Test-Path -LiteralPath "HKCU:\$k")) { $fallos += "falta la clave HKCU\$k" }
+                         'Software\Classes\Directory\shell\Medrar.Add\command', 'Software\Classes\Directory\Background\shell\Medrar.Open\command',
+                         'Software\Classes\Applications\Medrar.exe\shell\open\command') {
+            if (-not (Test-Path -LiteralPath "HKLM:\$k")) { $fallos += "falta la clave HKLM\$k" }
           }
-          if (-not (Test-Path -LiteralPath 'HKCU:\Software\Classes\*\shell\Medrar.Add\command')) { $fallos += 'falta la clave del menú de ficheros' }
-          if ((Get-ItemProperty HKCU:\Software\Medrar).Installer -ne 'msi') { $fallos += 'falta la marca Installer=msi' }
+          if (-not (Test-Path -LiteralPath 'HKLM:\Software\Classes\*\shell\Medrar.Add\command')) { $fallos += 'falta la clave del menú de ficheros' }
+          if ((Get-ItemProperty HKLM:\Software\Medrar).Installer -ne 'msi') { $fallos += 'falta la marca Installer=msi' }
+          # El acceso del menú Inicio debe apuntar al .exe (si no, Windows no ofrece «Desinstalar»)
+          $lnk = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\Medrar.lnk"
+          if (-not (Test-Path $lnk)) { $fallos += 'falta el acceso del menú Inicio' }
+          else { $t = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk).TargetPath; if ($t -ne "$dir\Medrar.exe") { $fallos += "el acceso apunta a '$t'" } }
+          # Aparece en «Aplicaciones instaladas» (lo que habilita «Desinstalar»)
+          $arp = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | Where-Object DisplayName -eq 'Medrar'
+          if (-not $arp) { $fallos += 'no aparece en Aplicaciones instaladas' } else { "Aplicaciones instaladas: $($arp.DisplayName) $($arp.DisplayVersion)" }
           & "$dir\mdr.exe" -h | Select-Object -First 1
           if ($fallos) { $fallos; throw 'La instalación no dejó todo lo esperado.' }
           Write-Host 'Instalación correcta'
@@ -45,8 +54,9 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "la desinstalación salió con $($p.ExitCode)" }
           $restos = @()
           if (Test-Path $dir) { $restos += $dir }
-          foreach ($k in 'Software\Medrar', 'Software\Classes\.mdr', 'Software\Classes\Medrar.Archive', 'Software\Classes\Directory\shell\Medrar.Add') {
-            if (Test-Path -LiteralPath "HKCU:\$k") { $restos += "HKCU\$k" }
+          if (Test-Path $lnk) { $restos += $lnk }
+          foreach ($k in 'Software\Medrar', 'Software\Classes\.mdr', 'Software\Classes\Medrar.Archive', 'Software\Classes\Directory\shell\Medrar.Add', 'Software\Classes\Applications\Medrar.exe') {
+            if (Test-Path -LiteralPath "HKLM:\$k") { $restos += "HKLM\$k" }
           }
           if ($restos) { $restos; throw 'La desinstalación dejó restos.' }
           Write-Host 'Desinstalación limpia'

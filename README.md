@@ -13,8 +13,9 @@ y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros
 
 Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-<versión>-x64.msi`**: es el instalador de Windows.
 
-1. Haz doble clic y sigue el asistente (está en español). Se instala **solo para tu usuario**, en
-   `%LocalAppData%\Programs\Medrar`, y **no pide permisos de administrador**.
+1. Haz doble clic y sigue el asistente (está en español). Se instala **para todo el equipo**, en
+   `C:\Program Files\Medrar`, y **pide permisos de administrador** (la ventana de Windows «¿Permitir cambios?»). Medrar aparece en
+   el menú Inicio y en *Configuración de Windows → Aplicaciones*; con clic derecho en el menú Inicio puedes **Desinstalar**.
 2. En la lista de componentes puedes elegir si asociar los archivos `.mdr`, añadir «Añadir a un archivo con Medrar» al menú del
    botón derecho y crear un acceso directo en el escritorio.
 3. Hace falta el [**.NET 10 Desktop Runtime**](https://dotnet.microsoft.com/download/dotnet/10.0) (x64): si falta, el instalador lo
@@ -25,6 +26,10 @@ Ve a **Releases** (a la derecha en GitHub) y baja **`Medrar-<versión>-x64.msi`*
 
 > El instalador **no está firmado digitalmente**, así que Windows SmartScreen puede mostrar «Windows protegió su PC»:
 > pulsa *Más información → Ejecutar de todos modos*. (Firmar exige un certificado de pago.)
+>
+> **Si tenías Medrar 1.2.x** (instalado «solo para tu usuario»), desinstálalo antes: la 1.3 se instala para todo el equipo y
+> no se puede poner encima de aquella. Esas versiones 1.2.x no pueden actualizarse solas a la 1.3; al intentarlo, Medrar lo explica y abre
+> la página de descarga. Tus archivos y tu configuración no se tocan.
 >
 > **Si tenías Medrar 1.1.x instalado con el antiguo instalador `.exe`** (Medrar-Setup-….exe), desinstálalo antes
 > (Configuración de Windows → Aplicaciones → Medrar). El `.msi` nuevo lo detecta y se niega a instalarse encima, porque las
@@ -40,7 +45,7 @@ La copia portable avisa de las versiones nuevas, pero no se instala sola (solo l
   **Omitir esta versión**. Se puede desactivar en *Configuración → Actualizaciones*.
 - Al aceptar, descarga el `.msi`, **comprueba su suma SHA-256** con la que la release publica en `SHA256SUMS.txt` (si no
   coincide, o la release no trae las sumas, **no instala nada**), cierra Medrar, instala la versión nueva encima (con una
-  barra de progreso de Windows) y vuelve a abrir Medrar.
+  barra de progreso de Windows; **Windows pide permiso de administrador** en cada actualización) y vuelve a abrir Medrar.
 - **No hace falta ninguna cuenta ni token**: el repositorio es público y la consulta es anónima. Solo si GitHub limita las
   consultas (muchas peticiones desde la misma red) o si algún día el repositorio vuelve a ser privado, se puede pegar un
   **token de acceso de solo lectura** (GitHub → Settings → Developer settings → *Fine-grained tokens*, permiso

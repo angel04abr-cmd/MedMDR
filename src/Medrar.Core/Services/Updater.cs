@@ -252,12 +252,18 @@ public static class TokenProtector
 [SupportedOSPlatform("windows")]
 public static class UpdateInstaller
 {
-    /// <summary>True si esta copia salió del instalador .msi (el MSI deja una marca en HKCU y la ruta de instalación).</summary>
-    public static bool IsMsiInstall(string? appDir = null)
+    /// <summary>True si esta copia salió del instalador .msi para todo el equipo (deja una marca en HKLM con la ruta de instalación).</summary>
+    public static bool IsMsiInstall(string? appDir = null) => MarkerMatches(Microsoft.Win32.RegistryHive.LocalMachine, appDir);
+
+    /// <summary>True si esta copia es de las versiones 1.2.x, instaladas solo para el usuario (marca en HKCU): no se actualizan solas.</summary>
+    public static bool IsLegacyPerUserInstall(string? appDir = null) => MarkerMatches(Microsoft.Win32.RegistryHive.CurrentUser, appDir);
+
+    private static bool MarkerMatches(Microsoft.Win32.RegistryHive hive, string? appDir)
     {
         try
         {
-            using var k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Medrar");
+            using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(hive, Microsoft.Win32.RegistryView.Registry64);
+            using var k = baseKey.OpenSubKey(@"Software\Medrar");
             if (k?.GetValue("Installer") as string != "msi") return false;
             string? dir = k.GetValue("InstallDir") as string;
             appDir ??= AppContext.BaseDirectory;

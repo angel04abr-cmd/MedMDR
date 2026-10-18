@@ -72,8 +72,12 @@ internal static class Updates
     {
         if (!UpdateInstaller.IsMsiInstall())
         {
-            UI.Info(owner, "Esta copia de Medrar no se instaló con el instalador (.msi), así que no puede actualizarse sola.\n\n" +
-                           "Se abrirá la página de la versión para que descargues el instalador nuevo.");
+            UI.Info(owner, UpdateInstaller.IsLegacyPerUserInstall()
+                ? "Esta copia de Medrar está instalada solo para tu usuario (versiones 1.2.x). La versión nueva se instala para todo el equipo " +
+                  "y pide permisos de administrador, así que no se puede poner encima.\n\n" +
+                  "Desinstala la actual (Configuración de Windows, Aplicaciones, Medrar) y ejecuta el instalador nuevo; se abrirá su página ahora."
+                : "Esta copia de Medrar no se instaló con el instalador (.msi), así que no puede actualizarse sola.\n\n" +
+                  "Se abrirá la página de la versión para que descargues el instalador nuevo.");
             if (info.PageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 Process.Start(new ProcessStartInfo(info.PageUrl) { UseShellExecute = true });
             return;
