@@ -21,7 +21,7 @@ public partial class ConvertWindow : Window
         DevTools.Hook(this, () => Ok_Click(this, new RoutedEventArgs()));
         foreach (var p in initial) Files.Items.Add(p);
         DestBox.Text = folder;
-        foreach (var f in new[] { "Medrar (.mdr)", "ZIP (.zip)", "7Z (.7z)", "TAR.GZ (.tar.gz)" }) FormatBox.Items.Add(f);
+        foreach (var f in new[] { $"{AppInfo.Name} (.mdr)", "ZIP (.zip)", "7Z (.7z)", "TAR.GZ (.tar.gz)" }) FormatBox.Items.Add(f);
         foreach (var l in new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor", "Ultra (solo .mdr, muy lento)" }) LevelBox.Items.Add(l);
         FormatBox.SelectedIndex = 0; LevelBox.SelectedIndex = 3;
     }

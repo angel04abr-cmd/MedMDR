@@ -133,23 +133,27 @@ public partial class MainWindow
         if (p == null) { Msg.Info(this, "Abre o selecciona un archivo comprimido para comprobarlo."); return; }
         var s = OpenSessionFor(p);
         if (s == null) return;
-        try
-        {
-            ExtractResult? result = null;
-            if (!RunWithPassword(s, "Comprobando el archivo", prog => result = Extractor.Test(s.Archive, prog))) return;
-            bool ok = result!.Ok;
-            string head = ok ? $"Todo correcto: {result.Extracted} fichero(s) verificados." : $"Se encontraron {result.Errors.Count} error(es).";
-            var lines = result.Errors.Select(x => $"{x.Path}: {x.Error}").ToList();
-            if (s.Archive.HasRecovery)
-            {
-                var rr = RecoveryRecord.Test(s.Path);
-                lines.Add("Registro de recuperación: " + rr.Message);
-                if (!rr.Success && !ok) head += " Puedes intentar «Reparar archivo».";
-            }
-            if (lines.Count == 0) lines.Add("No se encontraron errores en el archivo.");
-            ResultWindow.Show(this, "Comprobación", head, lines, ok);
-        }
+        try { TestSession(s); }
         finally { if (!ReferenceEquals(s, _session)) s.Dispose(); }
+    }
+
+    /// <summary>Comprueba el archivo y muestra el resultado. Devuelve true si no hubo errores.</summary>
+    private bool TestSession(ArchiveSession s)
+    {
+        ExtractResult? result = null;
+        if (!RunWithPassword(s, "Comprobando el archivo", prog => result = Extractor.Test(s.Archive, prog))) return false;
+        bool ok = result!.Ok;
+        string head = ok ? $"Todo correcto: {result.Extracted} fichero(s) verificados." : $"Se encontraron {result.Errors.Count} error(es).";
+        var lines = result.Errors.Select(x => $"{x.Path}: {x.Error}").ToList();
+        if (s.Archive.HasRecovery)
+        {
+            var rr = RecoveryRecord.Test(s.Path);
+            lines.Add("Registro de recuperación: " + rr.Message);
+            if (!rr.Success && !ok) head += " Puedes intentar «Reparar archivo».";
+        }
+        if (lines.Count == 0) lines.Add("No se encontraron errores en el archivo.");
+        ResultWindow.Show(this, "Comprobación", head, lines, ok);
+        return ok;
     }
 
     private void Command_View(object sender, RoutedEventArgs e)
@@ -584,48 +588,84 @@ public partial class MainWindow
     private void FileList_ContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
         RowMenu.Items.Clear();
-        var sel = Selected();
+        var sel = Selected().Where(n => !n.IsUp).ToList();
         bool one = sel.Count == 1;
-        void Add(string header, RoutedEventHandler click) { var mi = new MenuItem { Header = header }; mi.Click += click; RowMenu.Items.Add(mi); }
+        void Add(string header, RoutedEventHandler click, IconKind? icon = null, string? gesture = null)
+        {
+            var mi = new MenuItem { Header = header, InputGestureText = gesture ?? "" };
+            if (icon != null) mi.Icon = new Icon { Kind = icon.Value, Size = 16 };
+            mi.Click += click;
+            RowMenu.Items.Add(mi);
+        }
         void Sep() => RowMenu.Items.Add(new Separator());
 
         if (InArchive)
         {
             if (sel.Count > 0)
             {
-                Add("Abrir", (_, _) => ActivateSelected());
-                Add("Extraer en una carpeta…", Command_Extract);
+                Add("Abrir", (_, _) => ActivateSelected(), IconKind.Folder, "Intro");
+                Add("Extraer en una carpeta…", Command_Extract, IconKind.Extract, "Alt+E");
                 Add("Extraer aquí (junto al archivo)", Command_ExtractHere);
-                Add("Ver", Command_View);
+                Add("Ver", Command_View, IconKind.View, "Alt+V");
                 Sep();
-                Add("Renombrar", Command_Rename);
-                Add("Eliminar del archivo", Command_Delete);
+                Add("Renombrar", Command_Rename, null, "F2");
+                Add("Eliminar del archivo", Command_Delete, IconKind.Delete, "Supr");
                 Sep();
             }
-            Add("Añadir ficheros al archivo…", Command_Add);
-            Add("Comprobar el archivo", Command_Test);
-            Add("Información del archivo", Command_Info);
+            Add("Añadir ficheros al archivo…", Command_Add, IconKind.Add, "Alt+A");
+            Add("Comprobar el archivo", Command_Test, IconKind.Test, "Alt+T");
+            Add("Información del archivo", Command_Info, IconKind.Info, "Alt+I");
+            Sep();
+            Add("Seleccionar todo", SelectAll_Click, null, "Ctrl+A");
+            Add("Copiar los nombres", CopyNames_Click);
             Sep();
             Add("Cerrar el archivo", CloseArchive_Click);
         }
         else if (sel.Count > 0)
         {
             bool isArc = one && sel[0].IsArchive;
-            Add("Abrir", (_, _) => ActivateSelected());
+            Add("Abrir", (_, _) => ActivateSelected(), IconKind.Folder, "Intro");
             if (isArc)
             {
-                Add("Extraer en una carpeta…", Command_Extract);
+                string folderName = Path.GetFileNameWithoutExtension(sel[0].Name);
+                Add("Extraer en una carpeta…", Command_Extract, IconKind.Extract, "Alt+E");
+                Add($"Extraer en «{folderName}\\»", (_, _) => ExtractCommand(ask: false, here: false));
                 Add("Extraer aquí", Command_ExtractHere);
-                Add("Comprobar", Command_Test);
-                Add("Reparar…", Command_Repair);
+                Add("Comprobar", Command_Test, IconKind.Test, "Alt+T");
+                Add("Reparar…", Command_Repair, IconKind.Repair, "Alt+R");
+                Sep();
             }
-            Add("Añadir a un archivo…", Command_Add);
+            Add("Añadir a un archivo…", Command_Add, IconKind.Add, "Alt+A");
+            string quick = AddWindow.DefaultName(sel.Select(n => n.FullPath).ToList()) + ArchiveBuilder.Extension(_settings.DefaultFormat);
+            Add($"Comprimir en «{quick}»", (_, _) => QuickCompress(sel.Select(n => n.FullPath).ToArray()));
             Sep();
-            Add("Renombrar", Command_Rename);
-            Add("Eliminar (a la Papelera)", Command_Delete);
+            Add("Renombrar", Command_Rename, null, "F2");
+            Add("Eliminar (a la Papelera)", Command_Delete, IconKind.Delete, "Supr");
             Sep();
-            Add("Mostrar en el Explorador", (_, _) => { try { Process.Start("explorer.exe", $"/select,\"{sel[0].FullPath}\""); } catch { } });
+            Add("Copiar la ruta", (_, _) => { try { Clipboard.SetText(string.Join(Environment.NewLine, sel.Select(n => n.FullPath))); } catch { } });
+            Add("Mostrar en el Explorador", (_, _) => OpenInExplorer(sel[0].FullPath));
         }
-        else Add("Actualizar", (_, _) => LoadFolder(_folder));
+        else
+        {
+            Add("Actualizar", (_, _) => LoadFolder(_folder));
+            Add("Abrir esta carpeta en el Explorador", (_, _) => OpenInExplorer(_folder));
+        }
+    }
+
+    /// <summary>Comprime la selección sin preguntar: formato y nivel de la Configuración, junto a los originales.</summary>
+    private void QuickCompress(string[] paths)
+    {
+        string dir = Path.GetDirectoryName(paths[0].TrimEnd('\\')) ?? _folder;
+        var o = new ArchiveOptions
+        {
+            Format = _settings.DefaultFormat, Level = _settings.DefaultLevel, Solid = _settings.DefaultSolid,
+            TestAfter = _settings.DefaultTestAfter, RecoveryPercent = _settings.DefaultRecoveryPercent
+        };
+        string path = Extractor.UniqueName(Path.Combine(dir, AddWindow.DefaultName(paths) + ArchiveBuilder.Extension(o.Format)));
+        var created = CreateArchive(new AddRequest { ArchivePath = path, Options = o }, paths);
+        if (created == null) return;
+        Say("Archivo creado: " + created);
+        LoadFolder(_folder);
+        SelectByName(Path.GetFileName(created));
     }
 }

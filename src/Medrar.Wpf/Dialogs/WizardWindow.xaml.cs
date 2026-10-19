@@ -27,7 +27,7 @@ public partial class WizardWindow : Window
             for (int i = 0; i < 3; i++) { Next_Click(this, new RoutedEventArgs()); if (!IsVisible) return; DevTools.Capture(this, "-paso" + (i + 2)); }
         });
         _settings = settings; _folder = folder;
-        foreach (var f in new[] { "Medrar (.mdr)", "ZIP", "7Z", "TAR.GZ" }) FormatBox.Items.Add(f);
+        foreach (var f in new[] { $"{AppInfo.Name} (.mdr)", "ZIP", "7Z", "TAR.GZ" }) FormatBox.Items.Add(f);
         foreach (var l in new[] { "Más rápido", "Normal", "El mejor" }) LevelBox.Items.Add(l);
         FormatBox.SelectedIndex = 0; LevelBox.SelectedIndex = 1;
         DestBox.Text = ExtractDestBox.Text = folder;

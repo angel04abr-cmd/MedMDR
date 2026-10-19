@@ -77,6 +77,8 @@
                 <MenuItem Header="_Restablecer la configuración…" Click="ResetSettings_Click" />
             </MenuItem>
             <MenuItem Header="Ay_uda">
+                <MenuItem Header="Buscar a_ctualizaciones…" Click="CheckUpdates_Click" />
+                <Separator />
                 <MenuItem Header="_Acerca de MedMDR…" Click="About_Click" />
             </MenuItem>
         </Menu>
@@ -166,7 +168,8 @@
                     <ListView x:Name="FileList" BorderThickness="0" Background="Transparent" SelectionMode="Extended"
                               ItemContainerStyle="{StaticResource FileRowStyle}" Margin="2,4,2,4"
                               MouseDoubleClick="FileList_MouseDoubleClick" SelectionChanged="FileList_SelectionChanged"
-                              GridViewColumnHeader.Click="Header_Click" SizeChanged="FileList_SizeChanged" ContextMenuOpening="FileList_ContextMenuOpening">
+                              GridViewColumnHeader.Click="Header_Click" SizeChanged="FileList_SizeChanged" ContextMenuOpening="FileList_ContextMenuOpening"
+                              PreviewMouseLeftButtonDown="FileList_PreviewMouseLeftButtonDown" PreviewMouseMove="FileList_PreviewMouseMove">
                         <ListView.ContextMenu>
                             <ContextMenu x:Name="RowMenu" />
                         </ListView.ContextMenu>

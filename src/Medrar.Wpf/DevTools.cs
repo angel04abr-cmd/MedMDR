@@ -82,6 +82,13 @@ internal static class DevTools
     public static Window CreateDialog(string name) => name switch
     {
         "about" => new AboutWindow(),
+        "update" => new UpdateWindow(new Medrar.Core.UpdateInfo(new Version(9, 9, 9), "v9.9.9", "• Novedad de ejemplo uno\n• Novedad de ejemplo dos\n• Correcciones varias", "https://example.invalid/", "x.msi", "https://example.invalid/x.msi", 1000, null), new Version(1, 5, 0)),
+        "add" => new AddWindow(new[] { Environment.CurrentDirectory }, Environment.CurrentDirectory, new Medrar.Core.AppSettings()),
+        "settings" => new SettingsWindow(new Medrar.Core.AppSettings()),
+        "wizard" => new WizardWindow(Environment.CurrentDirectory, new Medrar.Core.AppSettings()),
+        "convert" => new ConvertWindow(Array.Empty<string>(), Environment.CurrentDirectory),
+        "find" => new FindWindow(Environment.CurrentDirectory, null, null),
+        "password" => new NewPasswordWindow(true, false),
         _ => throw new ArgumentException("Diálogo desconocido: " + name)
     };
 

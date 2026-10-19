@@ -70,7 +70,7 @@ public partial class AddWindow : Window
         OnFormatChanged();
     }
 
-    private static string DefaultName(IReadOnlyList<string> sources)
+    internal static string DefaultName(IReadOnlyList<string> sources)
     {
         if (sources.Count == 1)
         {
@@ -134,7 +134,7 @@ public partial class AddWindow : Window
             Title = "Nombre del archivo", OverwritePrompt = false,
             InitialDirectory = Path.GetDirectoryName(NameBox.Text) is { Length: > 0 } d && Directory.Exists(d) ? d : _folder,
             FileName = Path.GetFileName(NameBox.Text),
-            Filter = "Medrar (*.mdr)|*.mdr|ZIP (*.zip)|*.zip|7Z (*.7z)|*.7z|TAR.GZ (*.tar.gz)|*.tar.gz|TAR (*.tar)|*.tar|GZ (*.gz)|*.gz|Todos|*.*"
+            Filter = $"{AppInfo.Name} (*.mdr)|*.mdr|ZIP (*.zip)|*.zip|7Z (*.7z)|*.7z|TAR.GZ (*.tar.gz)|*.tar.gz|TAR (*.tar)|*.tar|GZ (*.gz)|*.gz|Todos|*.*"
         };
         if (s.ShowDialog(this) == true) NameBox.Text = s.FileName;
     }

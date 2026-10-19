@@ -33,7 +33,7 @@ public partial class MainWindow : Window
     private bool InArchive => _session != null;
     private IArchive Archive => _session!.Archive;
 
-    public MainWindow(string? path)
+    public MainWindow(string? path, bool quick = false)
     {
         InitializeComponent();
         _view = new ListCollectionView(_items);
@@ -48,12 +48,14 @@ public partial class MainWindow : Window
         else MarkTheme(App.Args.Theme switch { "light" => CoreTheme.Light, "dark" => CoreTheme.Dark, _ => CoreTheme.System });
 
         _sessionPassword = App.Args.Password;
+        if (quick) return;      // órdenes rápidas (menú de Windows): no se carga ninguna carpeta ni se muestra la ventana
         BuildSidebar();
         if (path != null && File.Exists(path)) { LoadFolder(Path.GetDirectoryName(Path.GetFullPath(path))!); OpenArchive(Path.GetFullPath(path)); }
         else LoadFolder(path != null && Directory.Exists(path) ? path
             : Directory.Exists(_settings.StartupFolder) ? _settings.StartupFolder : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
         ApplyWindowSettings();
         UpdateCommands();
+        if (App.Args.Snapshot == null && App.Args.Dialog == null) ContentRendered += (_, _) => Updates.CheckInBackground(this, _settings);
     }
 
     // ------------------------------------------------------------------ panel lateral
@@ -463,13 +465,13 @@ public partial class MainWindow : Window
 
     private void Window_DragOver(object sender, DragEventArgs e)
     {
-        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) && !_draggingOut ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 
     private void Window_Drop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetData(DataFormats.FileDrop) is not string[] paths || paths.Length == 0) return;
+        if (_draggingOut || e.Data.GetData(DataFormats.FileDrop) is not string[] paths || paths.Length == 0) return;
         Dispatcher.BeginInvoke(() =>
         {
             if (InArchive) AddToCurrentArchive(paths);
@@ -479,6 +481,8 @@ public partial class MainWindow : Window
     }
 
     // ------------------------------------------------------------------ tema
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) => await Updates.CheckNowAsync(this, _settings);
 
     private void Theme_Click(object sender, RoutedEventArgs e)
     {
@@ -522,6 +526,11 @@ public partial class MainWindow : Window
                 case "extract": Command_Extract(this, noArgs); break;
                 case "convert": Command_Convert(this, noArgs); break;
                 case "wizard": Command_Wizard(this, noArgs); break;
+                case "dragprep": Say("ARRASTRE: " + string.Join(" | ", PrepareDragPaths())); break;           // solo pruebas
+                case "menu":                                                                                   // solo pruebas
+                    FileList_ContextMenuOpening(this, null!);
+                    Say("MENÚ: " + string.Join(" | ", RowMenu.Items.OfType<MenuItem>().Select(m => m.Header)));
+                    break;
                 case "settings": Command_Settings(this, noArgs); break;
                 case "find": Command_Find(this, noArgs); break;
                 case "delete": Command_Delete(this, noArgs); break;

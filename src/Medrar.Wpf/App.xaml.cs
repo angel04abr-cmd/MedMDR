@@ -21,6 +21,14 @@ public partial class App : Application
             return;
         }
 
+        if (Args.Mode != "main")        // «Añadir», «Extraer aquí», «Extraer en…» o «Comprobar» desde el menú de Windows: sin ventana principal
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            int code = new MainWindow(null, quick: true).RunQuick(Args.Mode, Args.Paths);
+            Shutdown(code);
+            return;
+        }
+
         Window window = Args.Dialog != null ? DevTools.CreateDialog(Args.Dialog) : new MainWindow(Args.Path);
         window.Show();
         if (Args.Snapshot != null) DevTools.SnapshotLater(window, Args);
@@ -43,6 +51,8 @@ public sealed class LaunchArgs
     public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto
     public bool Accept;                     // solo pruebas: tras la captura, cada diálogo se acepta con sus valores (en vez de cancelarse)
     public int SelectRow = -1;
+    public string Mode = "main";           // main | add | extract-here | extract-to | test (órdenes del menú de Windows)
+    public List<string> Paths = new();
 
     public static LaunchArgs Parse(string[] args)
     {
@@ -57,13 +67,20 @@ public sealed class LaunchArgs
                 case "--auto": l.Auto = args[++i]; break;
                 case "--shots-dir": l.ShotsDir = args[++i]; break;
                 case "--yes": l.AutoYes = true; break;
+                case "--add": l.Mode = "add"; break;
+                case "--extract-here": l.Mode = "extract-here"; break;
+                case "--extract-to": l.Mode = "extract-to"; break;
+                case "--test": l.Mode = "test"; break;
                 case "--accept": l.Accept = true; break;
                 case "--text": l.AutoText = args[++i]; break;
                 case "--password": l.Password = args[++i]; break;
                 case "--dialog": l.Dialog = args[++i]; break;
                 case "--dump-keys": l.DumpKeys = args[++i]; break;
                 case "--select": l.SelectRow = int.Parse(args[++i]); break;
-                default: if (File.Exists(args[i]) || Directory.Exists(args[i])) l.Path = args[i]; break;
+                default:
+                    l.Paths.Add(args[i]);
+                    if (l.Path == null && (File.Exists(args[i]) || Directory.Exists(args[i]))) l.Path = args[i];
+                    break;
             }
         }
         return l;

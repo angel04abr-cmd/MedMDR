@@ -38,7 +38,7 @@
                                 <ComboBox x:Name="ModeBox" Height="32" />
 
                                 <TextBlock Text="Formato:" Style="{StaticResource FieldLabel}" />
-                                <RadioButton x:Name="FMdr" GroupName="fmt" Content="Medrar (.mdr) — cifrado, recuperación y más" Checked="Format_Changed" />
+                                <RadioButton x:Name="FMdr" GroupName="fmt" Content="MedMDR (.mdr) — cifrado, recuperación y más" Checked="Format_Changed" />
                                 <WrapPanel Margin="0,2,0,0">
                                     <RadioButton x:Name="FZip" GroupName="fmt" Content="ZIP" Margin="0,0,16,0" Checked="Format_Changed" />
                                     <RadioButton x:Name="F7z" GroupName="fmt" Content="7Z" Margin="0,0,16,0" Checked="Format_Changed" />

@@ -62,7 +62,7 @@ internal static class ShellInfo
         string ext = Path.GetExtension(name).ToLowerInvariant();
         switch (ext)
         {
-            case ".mdr": return "Archivo Medrar";
+            case ".mdr": return "Archivo " + AppInfo.Name;
             case ".zip": return "Archivo ZIP";
             case ".rar": return "Archivo RAR";
             case ".7z": return "Archivo 7Z";

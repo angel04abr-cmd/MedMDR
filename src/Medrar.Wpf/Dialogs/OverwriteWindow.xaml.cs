@@ -30,7 +30,10 @@ public partial class OverwriteWindow : Window
         var result = OverwriteDecision.Cancel;
         owner.Dispatcher.Invoke(() =>
         {
-            var w = new OverwriteWindow(path) { Owner = owner.OwnedWindows.Count > 0 ? owner.OwnedWindows[0] : owner };
+            var w = new OverwriteWindow(path);
+            // sobre la ventana de progreso si está abierta; si no, sobre la principal; sin ninguna visible (órdenes del menú de Windows), centrada
+            Window? top = owner.OwnedWindows.Cast<Window>().FirstOrDefault(x => x.IsVisible) ?? (owner.IsVisible ? owner : null);
+            if (top != null) w.Owner = top; else w.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             w.ShowDialog();
             result = w.Decision;
             if (w.ApplyToAll && result != OverwriteDecision.Cancel)

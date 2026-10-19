@@ -18,7 +18,7 @@ public partial class SettingsWindow : Window
         DevTools.Hook(this, () => Ok_Click(this, new RoutedEventArgs()));
         _s = s;
 
-        foreach (var f in new[] { "Medrar (.mdr)", "ZIP", "7Z", "TAR.GZ", "TAR" }) FormatBox.Items.Add(f);
+        foreach (var f in new[] { $"{AppInfo.Name} (.mdr)", "ZIP", "7Z", "TAR.GZ", "TAR" }) FormatBox.Items.Add(f);
         foreach (var l in new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor", "Ultra (solo .mdr, muy lento)" }) LevelBox.Items.Add(l);
         foreach (var o in new[] { "Preguntar", "Sobrescribir sin preguntar", "Omitir los existentes", "Renombrar automáticamente" }) OverwriteBox.Items.Add(o);
         foreach (var f in Fonts.SystemFontFamilies.Select(f => f.Source).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase)) FontBox.Items.Add(f);

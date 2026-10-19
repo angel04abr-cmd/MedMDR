@@ -32,19 +32,19 @@ public sealed class ShellIntegration
         string icon = $"\"{exePath}\",0";
         if (contextMenu)
         {
-            SetCommand($@"*\shell\{Verb}.Add", "Añadir a un archivo con Medrar…", $"\"{exePath}\" --add \"%1\"", icon);
-            SetCommand($@"Directory\shell\{Verb}.Add", "Añadir a un archivo con Medrar…", $"\"{exePath}\" --add \"%1\"", icon);
-            SetCommand($@"Directory\Background\shell\{Verb}.Open", "Abrir esta carpeta en Medrar", $"\"{exePath}\" \"%V\"", icon);
+            SetCommand($@"*\shell\{Verb}.Add", "Añadir a un archivo con MedMDR…", $"\"{exePath}\" --add \"%1\"", icon);
+            SetCommand($@"Directory\shell\{Verb}.Add", "Añadir a un archivo con MedMDR…", $"\"{exePath}\" --add \"%1\"", icon);
+            SetCommand($@"Directory\Background\shell\{Verb}.Open", "Abrir esta carpeta en MedMDR", $"\"{exePath}\" \"%V\"", icon);
         }
         if (associateMdr)
         {
             using (var ext = Root.CreateSubKey($@"{_classes}\.mdr")) ext.SetValue("", "Medrar.Archive");
             using (var prog = Root.CreateSubKey($@"{_classes}\Medrar.Archive"))
             {
-                prog.SetValue("", "Archivo Medrar");
+                prog.SetValue("", "Archivo MedMDR");
                 using var di = prog.CreateSubKey("DefaultIcon"); di.SetValue("", icon);
             }
-            SetCommand(@"Medrar.Archive\shell\open", "Abrir con Medrar", $"\"{exePath}\" \"%1\"", icon);
+            SetCommand(@"Medrar.Archive\shell\open", "Abrir con MedMDR", $"\"{exePath}\" \"%1\"", icon);
             SetCommand(@"Medrar.Archive\shell\extracthere", "Extraer aquí", $"\"{exePath}\" --extract-here \"%1\"", icon);
             SetCommand(@"Medrar.Archive\shell\extractto", "Extraer en una carpeta…", $"\"{exePath}\" --extract-to \"%1\"", icon);
             SetCommand(@"Medrar.Archive\shell\test", "Comprobar el archivo", $"\"{exePath}\" --test \"%1\"", icon);

@@ -17,7 +17,7 @@ public sealed class MdrArchive : IArchive
     private readonly bool _embedded;       // dentro de un autoextraíble: solo lectura
 
     public string Path { get; }
-    public string FormatName => "Medrar (.mdr)";
+    public string FormatName => "MedMDR (.mdr)";
     public IReadOnlyList<ArchiveEntry> Entries => _entries;
     public string? Comment => _dir?.Comment;
     public bool IsSolid => _header.Solid;
