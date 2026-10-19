@@ -60,6 +60,28 @@ public static class SourceCollector
         }
     }
 
+    /// <summary>
+    /// «Eliminar los originales al terminar»: borra solo los ficheros que de verdad se guardaron en el archivo y, después, las carpetas que
+    /// hayan quedado vacías. Lo que se excluyó (patrones de exclusión, carpetas sin permiso, enlaces) o no se pudo leer **no se toca**.
+    /// Devuelve cuántos ficheros se borraron.
+    /// </summary>
+    public static int DeleteArchived(IEnumerable<SourceItem> items, string? keepFile = null)
+    {
+        var list = items.ToList();
+        string? keep = keepFile == null ? null : Path.GetFullPath(keepFile);
+        int deleted = 0;
+        foreach (var f in list.Where(i => !i.IsDirectory && i.FullPath != null))
+        {
+            if (keep != null && string.Equals(Path.GetFullPath(f.FullPath!), keep, StringComparison.OrdinalIgnoreCase)) continue;
+            try { File.Delete(f.FullPath!); deleted++; } catch { /* en uso o sin permiso: se deja */ }
+        }
+        foreach (var d in list.Where(i => i.IsDirectory && i.FullPath != null).OrderByDescending(i => i.FullPath!.Length))
+        {
+            try { if (!Directory.EnumerateFileSystemEntries(d.FullPath!).Any()) Directory.Delete(d.FullPath!); } catch { /* no vacía o sin permiso */ }
+        }
+        return deleted;
+    }
+
     private static void AddFile(FileInfo fi, string parent, PathMode mode, string prefix, ArchiveOptions o, List<SourceItem> list, HashSet<string> seen)
     {
         if (Glob.MatchesAny(fi.Name, o.ExcludePatterns)) return;

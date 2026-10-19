@@ -11,6 +11,12 @@ public partial class MainWindow
     internal int RunQuick(string mode, List<string> paths)
     {
         try { return mode == "add" ? QuickAdd(paths) : QuickArchive(mode, paths.FirstOrDefault()); }
+        catch (Exception ex)
+        {
+            ErrorLog.Write(ex);
+            Msg.Error(this, "No se pudo completar la operación.\n\n" + Msg.Describe(ex));
+            return 2;
+        }
         finally { SaveSettings(); }
     }
 

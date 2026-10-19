@@ -75,8 +75,17 @@ public static class SettingsStore
 {
     private static readonly JsonSerializerOptions Opt = new() { WriteIndented = true };
 
+    /// <summary>Variable de entorno que cambia la carpeta de datos (configuración y registro de errores). La usan las pruebas automáticas para no tocar la configuración real.</summary>
+    public const string DataDirVariable = "MEDMDR_DATA_DIR";
+
+    /// <summary>Carpeta de datos: la de <see cref="DataDirVariable"/> si está definida y es una ruta completa; si no, %APPDATA%\MedMDR.</summary>
+    public static string DataDirFor(string? overrideDir) =>
+        !string.IsNullOrWhiteSpace(overrideDir) && System.IO.Path.IsPathRooted(overrideDir)
+            ? overrideDir.Trim()
+            : System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MedMDR");
+
     public static string DefaultPath =>
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MedMDR", "settings.json");
+        System.IO.Path.Combine(DataDirFor(Environment.GetEnvironmentVariable(DataDirVariable)), "settings.json");
 
     /// <summary>Carpeta de configuración de las versiones anteriores, cuando el programa se llamaba Medrar.</summary>
     public static string LegacyPath =>
@@ -98,7 +107,11 @@ public static class SettingsStore
 
     public static AppSettings Load(string? path = null)
     {
-        if (path == null) { MigrateLegacy(); path = DefaultPath; }
+        if (path == null)
+        {
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DataDirVariable))) MigrateLegacy();   // con carpeta de pruebas no se copia nada del usuario
+            path = DefaultPath;
+        }
         try
         {
             if (File.Exists(path))

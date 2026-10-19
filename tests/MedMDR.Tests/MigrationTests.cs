@@ -70,6 +70,16 @@ public class MigrationTests
         Assert.Equal("github_pat_nuevo", TokenProtector.Unprotect(TokenProtector.Protect("github_pat_nuevo")));
     }
 
+    [Fact]
+    public void Data_folder_can_be_redirected_for_tests_but_only_with_a_full_path()
+    {
+        string normal = SettingsStore.DataDirFor(null);
+        Assert.EndsWith("MedMDR", normal);
+        Assert.Equal(normal, SettingsStore.DataDirFor(""));
+        Assert.Equal(normal, SettingsStore.DataDirFor("relativa"));          // una ruta relativa se ignora
+        Assert.Equal(@"C:\pruebas\datos", SettingsStore.DataDirFor(@"C:\pruebas\datos "));
+    }
+
     private static string ReleaseWith(params string[] assetNames) =>
         JsonSerializer.Serialize(new
         {

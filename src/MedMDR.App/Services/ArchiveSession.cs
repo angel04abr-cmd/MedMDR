@@ -23,6 +23,11 @@ internal sealed class ArchiveSession : IDisposable
             try { return new ArchiveSession(path, ArchiveOpener.Open(path, pw), pw); }
             catch (PasswordRequiredException) { }
             catch (WrongPasswordException) { wrong = true; }
+            catch (Exception ex) when (ex is MedMDRException or IOException or UnauthorizedAccessException)
+            {
+                Msg.Error(owner, $"No se puede abrir «{System.IO.Path.GetFileName(path)}».\n\n{Msg.Describe(ex)}", "Abrir archivo");
+                return null;
+            }
             pw = AskPassword(owner, path, wrong);
             if (pw == null) return null;
         }

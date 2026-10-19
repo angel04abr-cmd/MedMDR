@@ -6,3 +6,6 @@ dist/
 
 .tools/
 .wix/
+
+# Ajustes locales de Claude Code
+.claude/settings.local.json

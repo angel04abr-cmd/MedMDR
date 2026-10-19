@@ -133,11 +133,14 @@ public partial class WizardWindow : Window
             if (PwCheck.IsChecked == true && _password == null) { Msg.Warn(this, "Pulsa «Contraseña…» para establecerla o desmarca la casilla."); return; }
             if (_password != null && fmt is not (ArchiveFormat.Mdr or ArchiveFormat.Zip or ArchiveFormat.SevenZip)) { Msg.Warn(this, "La contraseña solo está disponible en los formatos .mdr, ZIP y 7Z."); return; }
             string path = Path.Combine(Destination, NameBox.Text.Trim() + ArchiveBuilder.Extension(fmt));
-            if (File.Exists(path) && !Msg.Confirm(this, $"«{Path.GetFileName(path)}» ya existe. ¿Reemplazarlo?")) return;
-            try { Directory.CreateDirectory(Destination); if (File.Exists(path)) File.Delete(path); } catch (Exception ex) { Msg.Error(this, Msg.Describe(ex)); return; }
+            if (SourcesList.Items.Cast<string>().Any(s => string.Equals(Path.GetFullPath(s.TrimEnd('\\', '/')), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)))
+            { Msg.Warn(this, "El archivo no puede llamarse igual que uno de los ficheros que vas a comprimir: elige otro nombre."); return; }
+            bool exists = File.Exists(path);
+            if (exists && !Msg.Confirm(this, $"«{Path.GetFileName(path)}» ya existe. ¿Reemplazarlo?")) return;
+            try { Directory.CreateDirectory(Destination); } catch (Exception ex) { Msg.Error(this, Msg.Describe(ex)); return; }
             Request = new AddRequest
             {
-                ArchivePath = path, PathMode = PathMode.Relative,
+                ReplaceExisting = exists, ArchivePath = path, PathMode = PathMode.Relative,
                 Options = new ArchiveOptions { Format = fmt, Level = LevelBox.SelectedIndex switch { 0 => 1, 2 => 5, _ => 3 }, Password = _password, EncryptNames = _names && _password != null }
             };
         }

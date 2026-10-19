@@ -23,7 +23,7 @@ internal static class Recycle
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)] private static extern int SHFileOperation(ref SHFILEOPSTRUCT op);
 
     private const uint FO_DELETE = 3;
-    private const ushort FOF_ALLOWUNDO = 0x40, FOF_NOCONFIRMATION = 0x10, FOF_NOERRORUI = 0x400;
+    private const ushort FOF_ALLOWUNDO = 0x40, FOF_NOCONFIRMATION = 0x10, FOF_NOERRORUI = 0x400, FOF_WANTNUKEWARNING = 0x4000;
 
     /// <summary>Manda los ficheros o carpetas a la Papelera (se pueden recuperar). Devuelve false si no se pudo con todos.</summary>
     public static bool Delete(IntPtr owner, IEnumerable<string> paths)
@@ -33,7 +33,7 @@ internal static class Recycle
         var op = new SHFILEOPSTRUCT
         {
             hwnd = owner, wFunc = FO_DELETE, pFrom = string.Join("\0", list) + "\0\0",
-            fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI
+            fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_WANTNUKEWARNING   // si no cupiera en la Papelera, Windows pregunta en vez de borrar para siempre
         };
         return SHFileOperation(ref op) == 0 && op.fAnyOperationsAborted == 0;
     }

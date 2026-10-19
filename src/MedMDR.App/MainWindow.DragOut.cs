@@ -58,7 +58,7 @@ public partial class MainWindow
                 dir = Path.Combine(Path.GetTempPath(), AppInfo.Name, "drag-" + Guid.NewGuid().ToString("N")[..8]);
                 var o = new ExtractOptions { DestinationDir = dir, PathMode = PathMode.Relative, BaseFolder = _inside, Overwrite = OverwriteMode.Overwrite };
                 long total = entries.Where(x => !x.IsDirectory).Sum(x => x.Size)
-                           + entries.Where(x => x.IsDirectory).Sum(d => Archive.Entries.Where(f => !f.IsDirectory && f.Path.StartsWith(d.Path.TrimEnd('/') + "/")).Sum(f => f.Size));
+                           + entries.Where(x => x.IsDirectory).Sum(d => Archive.Entries.Where(f => !f.IsDirectory && f.Path.StartsWith(d.Path.TrimEnd('/') + "/", StringComparison.Ordinal)).Sum(f => f.Size));
                 bool done = false;
                 if (total <= 64L * 1024 * 1024)
                 {

@@ -13,6 +13,8 @@ public sealed class AddRequest
     public PathMode PathMode { get; set; } = PathMode.Relative;
     /// <summary>Carpeta dentro del archivo donde se colocan los ficheros (al añadir a un archivo abierto).</summary>
     public string? Subfolder { get; set; }
+    /// <summary>El usuario eligió reemplazar el archivo que ya existe (se aparta y solo se elimina al terminar bien).</summary>
+    public bool ReplaceExisting { get; set; }
 }
 
 /// <summary>«Añadir al archivo»: nombre, formato, método, volúmenes, contraseña, recuperación, comentario…</summary>
@@ -26,6 +28,7 @@ public partial class AddWindow : Window
     private readonly AppSettings _settings;
     private readonly bool _editingExisting;
     private readonly string _folder;
+    private readonly IReadOnlyList<string> _sources;
     private string? _password;
     private bool _encryptNames;
     private bool _ready;
@@ -39,6 +42,7 @@ public partial class AddWindow : Window
         _settings = settings;
         _editingExisting = existingArchive != null;
         _folder = defaultFolder;
+        _sources = sources;
         Title = existingArchive == null ? "Nombre y parámetros del archivo" : "Añadir ficheros al archivo";
 
         foreach (var r in settings.RecentArchives.Take(8)) NameBox.Items.Add(r);
@@ -116,6 +120,13 @@ public partial class AddWindow : Window
             ArchiveFormat.Tar => "Sin compresión ni contraseña (empaqueta ficheros).",
             _ => "Comprime un único fichero. Sin contraseña."
         };
+        if (_editingExisting)
+        {
+            // Al añadir a un archivo ya creado se conservan su formato, nivel, contraseña y tipo de bloque: no se ofrece cambiarlos
+            PwButton.IsEnabled = false; LevelBox.IsEnabled = DictBox.IsEnabled = DeflateCheck.IsEnabled = SolidCheck.IsEnabled = false;
+            PwState.Text = "Se mantiene la contraseña del archivo";
+            HintText.Text += "\n\nAl añadir a un archivo ya creado se mantienen su formato, nivel, contraseña y tipo de bloque.";
+        }
         VolBox.IsEnabled = VolUnit.IsEnabled = SfxCheck.IsChecked != true && !_editingExisting;
         if (SfxCheck.IsChecked == true) VolBox.Text = "";
         if (!_editingExisting && NameBox.Text.Length > 0)
@@ -242,6 +253,7 @@ public partial class AddWindow : Window
         if (path.Length == 0) { Msg.Warn(this, "Escribe el nombre del archivo."); return; }
         if (!Path.IsPathRooted(path)) path = Path.Combine(_folder, path);
         var o = BuildOptions();
+        bool replace = false;
         if (!_editingExisting)
         {
             string ext = Path.GetExtension(path).ToLowerInvariant();
@@ -252,18 +264,20 @@ public partial class AddWindow : Window
                 Msg.Warn(this, o.SfxIncludeRuntime ? "No se encuentra el módulo autoextraíble completo (MedMDR.Sfx.Full.exe) junto al programa." : "No se encuentra el módulo autoextraíble (MedMDR.Sfx.exe) junto al programa.");
                 return;
             }
+            if (_sources.Any(s => string.Equals(Path.GetFullPath(s.TrimEnd('\\', '/')), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)))
+            {
+                Msg.Warn(this, "El archivo no puede llamarse igual que uno de los ficheros que vas a comprimir: elige otro nombre.");
+                return;
+            }
             if (File.Exists(path) || (o.VolumeSizeBytes > 0 && File.Exists(path + ".001")))
             {
                 var r = Msg.AskYesNoCancel(this, $"«{Path.GetFileName(path)}» ya existe.\n\nSí = añadir/actualizar su contenido\nNo = reemplazarlo\nCancelar = volver");
                 if (r == MessageBoxResult.Cancel) return;
-                if (r == MessageBoxResult.No)
-                {
-                    try { VolumeSet.DeleteAll(File.Exists(path) ? path : path + ".001"); } catch (Exception ex) { Msg.Error(this, Msg.Describe(ex)); return; }
-                }
+                if (r == MessageBoxResult.No) replace = true;          // el anterior no se borra aquí: se aparta al crear y se elimina solo si todo va bien
             }
         }
         if (o.VolumeSizeBytes > 0 && o.VolumeSizeBytes < 1024) { Msg.Warn(this, "El tamaño de volumen mínimo es 1 KB."); return; }
-        Result = new AddRequest { ArchivePath = path, Options = o, PathMode = PFull.IsChecked == true ? PathMode.Full : PNone.IsChecked == true ? PathMode.None : PathMode.Relative };
+        Result = new AddRequest { ReplaceExisting = replace, ArchivePath = path, Options = o, PathMode = PFull.IsChecked == true ? PathMode.Full : PNone.IsChecked == true ? PathMode.None : PathMode.Relative };
         DialogResult = true;
     }
 

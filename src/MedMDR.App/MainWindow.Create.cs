@@ -10,7 +10,9 @@ public partial class MainWindow
     {
         string? created = null;
         var o = req.Options;
-        bool updating = existing != null || (File.Exists(req.ArchivePath) && o.VolumeSizeBytes == 0 && !o.SelfExtracting);
+        bool replace = req.ReplaceExisting && existing == null;
+        bool updating = existing != null || (!replace && File.Exists(req.ArchivePath) && o.VolumeSizeBytes == 0 && !o.SelfExtracting);
+        List<SourceItem>? collected = null;
         string title = updating ? "Actualizando el archivo" : "Creando el archivo";
 
         bool Work(string? pw)
@@ -18,6 +20,7 @@ public partial class MainWindow
             var err = ProgressWindow.Run(this, title, p =>
             {
                 var items = SourceCollector.Collect(sources, o, req.PathMode, req.Subfolder, p.Token);
+                collected = items;
                 if (updating)
                 {
                     existing?.Archive.Dispose();
@@ -29,15 +32,14 @@ public partial class MainWindow
                     ArchiveEditor.Apply(req.ArchivePath, pw ?? existing?.Password ?? o.Password, plan, p);
                     created = req.ArchivePath;
                 }
-                else created = ArchiveBuilder.Create(req.ArchivePath, items, o, p);
+                else created = CreateReplacing(req.ArchivePath, replace, () => ArchiveBuilder.Create(req.ArchivePath, items, o, p));
                 if (o.TestAfter && created != null)
                 {
                     using var a = ArchiveOpener.Open(created, o.Password ?? pw ?? existing?.Password);
                     var t = Extractor.Test(a, p);
                     if (!t.Ok) throw new MedMDRException("La verificación encontró errores: " + string.Join("; ", t.Errors.Select(e => e.Path)));
                 }
-                if (o.DeleteSourceAfter && created != null)
-                    foreach (var s in sources) { try { if (Directory.Exists(s)) Directory.Delete(s, true); else File.Delete(s); } catch { /* en uso */ } }
+                if (o.DeleteSourceAfter && created != null && collected != null) SourceCollector.DeleteArchived(collected, created);
             }, out bool cancelled);
             if (cancelled) { created = null; return false; }
             if (err is PasswordRequiredException or WrongPasswordException && existing != null)
@@ -68,6 +70,26 @@ public partial class MainWindow
             SaveSettings();
         }
         return created;
+    }
+
+    /// <summary>
+    /// Crea el archivo; si hay que reemplazar uno que ya existe, el anterior se aparta (no se borra) y solo se elimina cuando el nuevo está
+    /// completo: si se cancela o falla, el anterior vuelve a su sitio.
+    /// </summary>
+    private static string CreateReplacing(string path, bool replace, Func<string> create)
+    {
+        if (!replace) return create();
+        string first = File.Exists(path) ? path : path + ".001";
+        if (!File.Exists(first)) return create();
+        if (first != path) { VolumeSet.DeleteAll(first); return create(); }      // volúmenes: no se pueden apartar de forma sencilla
+        string backup = path + ".medmdr-anterior";
+        File.Move(path, backup, true);
+        try { var result = create(); File.Delete(backup); return result; }
+        catch
+        {
+            try { if (File.Exists(path)) File.Delete(path); File.Move(backup, path); } catch { /* queda la copia .medmdr-anterior */ }
+            throw;
+        }
     }
 
     /// <summary>Muestra «Añadir al archivo» y crea el archivo nuevo con los ficheros indicados.</summary>

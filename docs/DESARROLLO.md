@@ -70,6 +70,24 @@ MedMDR.exe --dump-keys claves.txt                        lista los recursos del 
 Cuidado al probar: usa una carpeta de demostración montada con `subst X: ruta` para que no salgan rutas personales en las capturas, entrecomilla
 las rutas con espacios que pases como argumentos y limpia después `%APPDATA%\MedMDR\settings.json` (historial y recientes).
 
+## Buscar errores (pruebas, agentes y skill)
+
+Las pruebas de xunit no ven los fallos que solo ocurren al **ejecutar** la ventana (el cierre al borrar era un error de memoria nativo, el «(1)» de
+«Comprimir en…» un nombre mal formado). Por eso hay tres capas:
+
+1. `dotnet test tests\MedMDR.Tests` — el motor, el actualizador, la migración desde Medrar y la seguridad de los borrados.
+2. `powershell -ExecutionPolicy Bypass -File tools\Smoke-Test.ps1` — **prueba de humo**: abre la aplicación de verdad en ~35 escenarios (borrar, comprimir,
+   extraer, convertir, buscar, asistente, configuración, menú de Windows, archivo roto…) y la ida y vuelta de cada formato con `mdr.exe`. Mira el código de
+   salida, los cuelgues, los fallos que Windows anota para `MedMDR.exe` y `error.log`, y comprueba el efecto real en disco. Trabaja en una carpeta temporal
+   con `MEDMDR_DATA_DIR` (no toca tu configuración); el único rastro es un fichero `medmdr-smoke-borrar-*.txt` en la Papelera. `-Only texto` repite uno,
+   `-SkipBuild` no compila, `-KeepData` conserva la carpeta temporal. Cada fallo nuevo debe acabar como un escenario aquí o una prueba de xunit.
+3. Claude Code: la skill `/buscar-bugs [interfaz|formatos|instalador|todo]` (`.claude/skills/buscar-bugs`) ordena todo el proceso y reparte el trabajo entre
+   tres agentes del proyecto (`.claude/agents/`): `medmdr-revisor` (lee el código buscando fallos reales; solo lectura), `medmdr-probador` (usa la
+   aplicación con los modos de prueba y mira las capturas) y `medmdr-formatos` (estresa los formatos y escribe pruebas). Sus informes son pistas: cada
+   hallazgo se reproduce antes de arreglarlo (en la primera revisión, 1 de 8 resultó falso).
+
+Lo que **no** se puede comprobar así: arrastrar con el ratón al Explorador, menús desplegables abiertos, escalas de pantalla del 150 % o 200 %, alto contraste.
+
 ## Nombres que se conservan a propósito
 
 El programa se llamaba **Medrar** hasta la versión 1.5. Para no dejar sin actualizar ni sin configuración a quien lo tenía instalado:

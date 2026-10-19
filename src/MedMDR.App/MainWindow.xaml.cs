@@ -270,6 +270,7 @@ public partial class MainWindow : Window
     private void CloseArchive(bool refresh)
     {
         if (_session == null) return;
+        _dragCache.Clear();
         _session.Dispose();
         _session = null;
         _inside = "";
@@ -281,6 +282,7 @@ public partial class MainWindow : Window
     private void ReloadArchive()
     {
         if (_session == null) return;
+        _dragCache.Clear();       // lo que se extrajo para arrastrar ya no vale si el archivo cambió
         string path = _session.Path, inside = _inside;
         string? pw = _session.Password;
         _session.Dispose();

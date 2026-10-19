@@ -10,7 +10,13 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        DispatcherUnhandledException += (_, ev) => ErrorLog.Write(ev.Exception);
+        DispatcherUnhandledException += (_, ev) =>
+        {
+            // Un error inesperado en una orden no debe cerrar el programa: se anota y se avisa. Solo se deja caer si ni el aviso se puede mostrar.
+            ErrorLog.Write(ev.Exception);
+            try { Msg.Error(MainWindow, "Ha ocurrido un error inesperado; el programa sigue abierto.\n\n" + Msg.Describe(ev.Exception)); ev.Handled = true; }
+            catch { /* sin ventana donde avisar */ }
+        };
         Args = LaunchArgs.Parse(e.Args);
         if (Args.Theme != null) ThemeMode = Args.Theme switch { "light" => ThemeMode.Light, "dark" => ThemeMode.Dark, _ => ThemeMode.System };
 
@@ -78,8 +84,10 @@ public sealed class LaunchArgs
                 case "--dump-keys": l.DumpKeys = args[++i]; break;
                 case "--select": l.SelectRow = int.Parse(args[++i]); break;
                 default:
-                    l.Paths.Add(args[i]);
-                    if (l.Path == null && (File.Exists(args[i]) || Directory.Exists(args[i]))) l.Path = args[i];
+                    // «"E:\"» (clic derecho en la raíz de una unidad) llega como E:" porque \" se lee como comilla: se quita
+                    string arg = args[i].TrimEnd('"');
+                    l.Paths.Add(arg);
+                    if (l.Path == null && (File.Exists(arg) || Directory.Exists(arg))) l.Path = arg;
                     break;
             }
         }

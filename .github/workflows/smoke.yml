@@ -1,0 +1,24 @@
+name: Prueba de humo
+
+# Abre la aplicación de verdad en un Windows limpio y ejecuta tools/Smoke-Test.ps1 (borrar, comprimir, extraer, convertir, buscar, formatos…).
+# Detecta cierres, cuelgues y fallos que las pruebas de xunit no ven.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/**', 'tools/**', '.github/workflows/smoke.yml']
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Prueba de humo
+        shell: pwsh
+        run: ./tools/Smoke-Test.ps1
