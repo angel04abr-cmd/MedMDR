@@ -249,6 +249,13 @@ public class UpdaterTests
         Assert.Empty(Directory.GetFiles(tmp.Path));
     }
 
+    private sealed class SyncProgress : IProgress<ProgressInfo>
+    {
+        private readonly Action _on;
+        public SyncProgress(Action on) => _on = on;
+        public void Report(ProgressInfo value) => _on();
+    }
+
     [Fact]
     public async Task Cancelled_download_leaves_no_files()
     {
@@ -257,7 +264,8 @@ public class UpdaterTests
         using var svc = gh.Client();
         var info = (await svc.CheckAsync(new Version(1, 0, 0)))!;
         using var cts = new CancellationTokenSource();
-        var reporter = new ProgressReporter(new Progress<ProgressInfo>(_ => cts.Cancel()), cts.Token);
+        // Progreso síncrono: con Progress<T> el aviso llega por otro hilo y la descarga local podía terminar antes de cancelarse.
+        var reporter = new ProgressReporter(new SyncProgress(() => cts.Cancel()), cts.Token);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => svc.DownloadAsync(info, tmp.Path, reporter, cts.Token));
         Assert.Empty(Directory.GetFiles(tmp.Path));
     }
