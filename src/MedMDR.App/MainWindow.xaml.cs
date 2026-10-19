@@ -529,6 +529,7 @@ public partial class MainWindow : Window
                 case "extract": Command_Extract(this, noArgs); break;
                 case "convert": Command_Convert(this, noArgs); break;
                 case "wizard": Command_Wizard(this, noArgs); break;
+                case "compress": QuickCompress(Selected().Where(n => !n.IsUp).Select(n => n.FullPath).ToArray()); break;   // solo pruebas
                 case "benchmark": Benchmark_Click(this, noArgs); break;
                 case "dragprep": Say("ARRASTRE: " + string.Join(" | ", PrepareDragPaths())); break;           // solo pruebas
                 case "menu":                                                                                   // solo pruebas

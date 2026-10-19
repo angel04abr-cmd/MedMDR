@@ -661,7 +661,8 @@ public partial class MainWindow
             Format = _settings.DefaultFormat, Level = _settings.DefaultLevel, Solid = _settings.DefaultSolid,
             TestAfter = _settings.DefaultTestAfter, RecoveryPercent = _settings.DefaultRecoveryPercent
         };
-        string path = Extractor.UniqueName(Path.Combine(dir, AddWindow.DefaultName(paths) + ArchiveBuilder.Extension(o.Format)));
+        string path = Path.Combine(dir, AddWindow.DefaultName(paths) + ArchiveBuilder.Extension(o.Format));
+        if (File.Exists(path) || Directory.Exists(path)) path = Extractor.UniqueName(path);      // «(1)» solo si ya existe uno con ese nombre
         var created = CreateArchive(new AddRequest { ArchivePath = path, Options = o }, paths);
         if (created == null) return;
         Say("Archivo creado: " + created);
