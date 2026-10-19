@@ -1,7 +1,7 @@
 name: Publicar versión
 
 # Se ejecuta al subir una etiqueta que empiece por «v» (por ejemplo v1.2.0): compila, prueba y crea la release con el
-# instalador .msi, el .zip portable y SHA256SUMS.txt (las sumas que Medrar comprueba antes de actualizarse solo).
+# instalador .msi, el .zip portable y SHA256SUMS.txt (las sumas que MedMDR comprueba antes de actualizarse solo).
 on:
   push:
     tags: ['v*']
@@ -28,9 +28,9 @@ jobs:
         shell: pwsh
         run: |
           $tag = '${{ github.ref_name }}'.TrimStart('v')
-          $msi = Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1
+          $msi = Get-ChildItem dist -Filter 'MedMDR-*-x64.msi' | Select-Object -First 1
           if (-not $msi) { throw 'No se encontró el instalador .msi' }
-          if ($msi.Name -ne "Medrar-$tag-x64.msi") { throw "La etiqueta v$tag no coincide con la versión compilada ($($msi.Name)). Sube <Version> en los .csproj antes de etiquetar." }
+          if ($msi.Name -ne "MedMDR-$tag-x64.msi") { throw "La etiqueta v$tag no coincide con la versión compilada ($($msi.Name)). Sube <Version> en los .csproj antes de etiquetar." }
 
       - name: Crear (o actualizar) la release
         shell: pwsh
@@ -39,8 +39,9 @@ jobs:
         run: |
           $tag = '${{ github.ref_name }}'
           $files = @(
-            (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1),
-            (Get-ChildItem dist -Filter 'Medrar-*-win-x64.zip' | Select-Object -First 1),
+            (Get-ChildItem dist -Filter 'MedMDR-*-x64.msi' | Select-Object -First 1),
+            (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1),   # copia con el nombre antiguo: así se actualizan las copias instaladas de «Medrar»
+            (Get-ChildItem dist -Filter 'MedMDR-*-win-x64.zip' | Select-Object -First 1),
             (Get-Item dist\SHA256SUMS.txt)
           ) | ForEach-Object { $_.FullName }
           $ErrorActionPreference = 'Continue'
@@ -48,6 +49,6 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag @files --clobber   # la release ya existe: solo se suben los ficheros
           } else {
-            gh release create $tag @files --title "Medrar $tag" --generate-notes
+            gh release create $tag @files --title "MedMDR $tag" --generate-notes
           }
           if ($LASTEXITCODE -ne 0) { throw 'No se pudo publicar la release' }

@@ -1,6 +1,6 @@
 # Formato .mdr (versión 1)
 
-Especificación del formato de archivo propio de Medrar. Está pensada para que cualquier programa pueda leerlo
+Especificación del formato de archivo propio de MedMDR. Está pensada para que cualquier programa pueda leerlo
 (no hay código oculto ni algoritmos propietarios: Brotli, Deflate, AES-GCM y PBKDF2 son estándar).
 Todos los números van en **little-endian**. «CRC32» es el CRC-32 habitual (el de ZIP).
 
@@ -26,7 +26,7 @@ Un autoextraíble es un `.exe` con el archivo pegado detrás; se localiza con el
 
 | Bytes | Contenido |
 |---|---|
-| 8 | Firma `4D 45 44 52 41 52 1A 01` («MEDRAR» + 0x1A + versión 1) |
+| 8 | Firma `4D 45 44 52 41 52 1A 01` («MEDMDR» + 0x1A + versión 1) |
 | 4 | Longitud *N* del JSON |
 | N | JSON UTF-8 de la cabecera |
 | 4 | CRC32 del JSON |
@@ -41,7 +41,7 @@ Los datos empiezan justo después de la cabecera: `8 + 4 + N + 4`.
 
 - Clave: `PBKDF2-HMAC-SHA256(contraseña UTF-8 normalizada NFC, Salt, Iter, 64 bytes)`.
   Los primeros 32 bytes son la **clave AES-256**; los últimos 32 son `Check` (sirve para saber si la contraseña es correcta).
-  Medrar usa `Iter` = 200 000.
+  MedMDR usa `Iter` = 200 000.
 - Cifrado por **bloques de 64 KB** con AES-256-GCM (etiqueta de 16 bytes). Cada bloque de texto claro de hasta 65 536
   bytes se guarda como `[texto cifrado][etiqueta 16 B]`; la longitud total cifrada de *L* bytes de texto claro es
   `L + 16 · máx(1, ⌈L / 65536⌉)`.
@@ -59,7 +59,7 @@ Los datos empiezan justo después de la cabecera: `8 + 4 + N + 4`.
 - **LZMA (método 3, nivel «Ultra»):** el flujo empieza con 5 bytes de propiedades LZMA (byte de lc/lp/pb + diccionario de 32 bits
   little-endian, como en el formato .lzma/7z) y sigue el flujo LZMA, que termina con su marca de fin (no se guarda el tamaño).
   Un archivo puede mezclar métodos: en no sólido cada entrada lleva el suyo (`M`); en sólido todo el bloque usa el de la cabecera.
-  Las versiones de Medrar anteriores a la 1.4 no entienden el método 3 y lo dicen con un error («método de compresión desconocido»).
+  Las versiones de MedMDR anteriores a la 1.4 no entienden el método 3 y lo dicen con un error («método de compresión desconocido»).
 - Con contraseña, todo el flujo de datos está cifrado con el esquema anterior; las posiciones `O` se refieren al flujo
   de datos ya descifrado (antes de añadir las etiquetas).
 

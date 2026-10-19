@@ -1,0 +1,100 @@
+using Microsoft.Win32;
+
+namespace MedMDR.Core;
+
+/// <summary>
+/// Integración con el Explorador de Windows (menú de clic derecho y asociación de .mdr).
+/// Solo escribe en HKEY_CURRENT_USER, así que no necesita permisos de administrador y se deshace por completo.
+/// </summary>
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+public sealed class ShellIntegration
+{
+    private const string Verb = "MedMDR";
+    private readonly string _classes;
+
+    /// <param name="classesRoot">Ruta bajo HKCU (por defecto Software\Classes). Se cambia en las pruebas.</param>
+    public ShellIntegration(string classesRoot = @"Software\Classes") => _classes = classesRoot;
+
+    private RegistryKey Root => Registry.CurrentUser;
+
+    private void SetCommand(string subKey, string title, string command, string icon)
+    {
+        using var k = Root.CreateSubKey($@"{_classes}\{subKey}");
+        k.SetValue("", title);
+        k.SetValue("MUIVerb", title);
+        k.SetValue("Icon", icon);
+        using var c = k.CreateSubKey("command");
+        c.SetValue("", command);
+    }
+
+    /// <summary>Claves que dejaban las versiones anteriores, cuando el programa se llamaba Medrar.</summary>
+    private static readonly string[] LegacyKeys =
+    {
+        @"*\shell\Medrar.Add", @"Directory\shell\Medrar.Add", @"Directory\Background\shell\Medrar.Open", "Medrar.Archive"
+    };
+
+    private void RemoveLegacy()
+    {
+        foreach (var k in LegacyKeys)
+        {
+            try { Root.DeleteSubKeyTree($@"{_classes}\{k}", throwOnMissingSubKey: false); } catch { }
+        }
+        // .mdr solo se quita si seguía apuntando al nombre antiguo
+        try
+        {
+            using var ext = Root.OpenSubKey($@"{_classes}\.mdr");
+            if ((ext?.GetValue("") as string) == "Medrar.Archive") Root.DeleteSubKeyTree($@"{_classes}\.mdr", throwOnMissingSubKey: false);
+        }
+        catch { }
+    }
+
+    public void Install(string exePath, bool associateMdr = true, bool contextMenu = true)
+    {
+        RemoveLegacy();
+        string icon = $"\"{exePath}\",0";
+        if (contextMenu)
+        {
+            SetCommand($@"*\shell\{Verb}.Add", "Añadir a un archivo con MedMDR…", $"\"{exePath}\" --add \"%1\"", icon);
+            SetCommand($@"Directory\shell\{Verb}.Add", "Añadir a un archivo con MedMDR…", $"\"{exePath}\" --add \"%1\"", icon);
+            SetCommand($@"Directory\Background\shell\{Verb}.Open", "Abrir esta carpeta en MedMDR", $"\"{exePath}\" \"%V\"", icon);
+        }
+        if (associateMdr)
+        {
+            using (var ext = Root.CreateSubKey($@"{_classes}\.mdr")) ext.SetValue("", "MedMDR.Archive");
+            using (var prog = Root.CreateSubKey($@"{_classes}\MedMDR.Archive"))
+            {
+                prog.SetValue("", "Archivo MedMDR");
+                using var di = prog.CreateSubKey("DefaultIcon"); di.SetValue("", icon);
+            }
+            SetCommand(@"MedMDR.Archive\shell\open", "Abrir con MedMDR", $"\"{exePath}\" \"%1\"", icon);
+            SetCommand(@"MedMDR.Archive\shell\extracthere", "Extraer aquí", $"\"{exePath}\" --extract-here \"%1\"", icon);
+            SetCommand(@"MedMDR.Archive\shell\extractto", "Extraer en una carpeta…", $"\"{exePath}\" --extract-to \"%1\"", icon);
+            SetCommand(@"MedMDR.Archive\shell\test", "Comprobar el archivo", $"\"{exePath}\" --test \"%1\"", icon);
+        }
+    }
+
+    public void Uninstall()
+    {
+        RemoveLegacy();
+        foreach (var k in new[]
+        {
+            $@"*\shell\{Verb}.Add", $@"Directory\shell\{Verb}.Add", $@"Directory\Background\shell\{Verb}.Open",
+            "MedMDR.Archive", ".mdr"
+        })
+        {
+            try { Root.DeleteSubKeyTree($@"{_classes}\{k}", throwOnMissingSubKey: false); } catch { }
+        }
+    }
+
+    public bool IsContextMenuInstalled()
+    {
+        using var k = Root.OpenSubKey($@"{_classes}\*\shell\{Verb}.Add");
+        return k != null;
+    }
+
+    public bool IsAssociated()
+    {
+        using var k = Root.OpenSubKey($@"{_classes}\.mdr");
+        return (k?.GetValue("") as string) == "MedMDR.Archive";
+    }
+}

@@ -1,0 +1,12 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MedMDR.Cli/MedMDR.Cli.csproj" />
+    <Project Path="src/MedMDR.Core/MedMDR.Core.csproj" />
+    <Project Path="src/MedMDR.Sfx/MedMDR.Sfx.csproj" />
+    <Project Path="src/MedMDR.App/MedMDR.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MedMDR.Tests/MedMDR.Tests.csproj" />
+  </Folder>
+</Solution>
+

@@ -1,0 +1,22 @@
+<Window x:Class="MedMDR.Wpf.TextPromptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MedMDR" Width="460" SizeToContent="Height" ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSizeBody}">
+    <Grid Margin="28,24,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="Prompt" Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,12" />
+        <TextBox x:Name="TextBox" Grid.Row="1" Height="34" VerticalContentAlignment="Center" Padding="10,0" />
+        <PasswordBox x:Name="Secret" Grid.Row="1" Height="34" VerticalContentAlignment="Center" Padding="10,0" Visibility="Collapsed" />
+        <CheckBox x:Name="ShowSecret" Grid.Row="2" Content="Mostrar la contraseña" Margin="0,12,0,0" Visibility="Collapsed" Checked="ShowSecret_Changed" Unchecked="ShowSecret_Changed" />
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+            <Button Content="Aceptar" Style="{DynamicResource AccentButtonStyle}" IsDefault="True" MinWidth="96" Padding="16,7" Click="Ok_Click" />
+            <Button Content="Cancelar" IsCancel="True" MinWidth="96" Padding="16,7" Margin="8,0,0,0" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,15 +1,15 @@
 # Componentes de terceros
 
-Medrar usa los siguientes componentes libres. Todos tienen licencia MIT, que exige conservar este aviso al redistribuirlos.
+MedMDR usa los siguientes componentes libres. Todos tienen licencia MIT, que exige conservar este aviso al redistribuirlos.
 
 | Componente | Para qué se usa | Copyright |
 |---|---|---|
 | [SharpCompress](https://github.com/adamhathcock/sharpcompress) 0.50.5 | Leer RAR, 7Z, BZ2, XZ, LZ, CAB, ISO… y crear 7Z | © 2025 Adam Hathcock |
 | [System.IO.Hashing](https://www.nuget.org/packages/System.IO.Hashing) 10.0.0 | Suma de control CRC32 | © Microsoft Corporation |
 | [System.Security.Cryptography.ProtectedData](https://www.nuget.org/packages/System.Security.Cryptography.ProtectedData) 10.0.0 | Guardar cifrado el token de las actualizaciones (DPAPI) | © Microsoft Corporation |
-| [.NET](https://dotnet.microsoft.com) 10 (Medrar.Sfx.Full.exe lo incluye entero) | Plataforma de ejecución | © .NET Foundation y colaboradores |
+| [.NET](https://dotnet.microsoft.com) 10 (MedMDR.Sfx.Full.exe lo incluye entero) | Plataforma de ejecución | © .NET Foundation y colaboradores |
 
-Dependencias del propio .NET (se distribuyen dentro de `Medrar.Sfx.Full.exe`): consulta
+Dependencias del propio .NET (se distribuyen dentro de `MedMDR.Sfx.Full.exe`): consulta
 <https://github.com/dotnet/runtime/blob/main/THIRD-PARTY-NOTICES.TXT>.
 
 ## Texto de la licencia MIT
@@ -33,6 +33,6 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## WinRAR
 
-Medrar **no contiene código, imágenes, iconos ni textos de WinRAR** ni de RARLAB. Observar qué funciones ofrece WinRAR
-sirvió solo para decidir qué funciones tendría Medrar. Medrar lee archivos RAR con SharpCompress y
+MedMDR **no contiene código, imágenes, iconos ni textos de WinRAR** ni de RARLAB. Observar qué funciones ofrece WinRAR
+sirvió solo para decidir qué funciones tendría MedMDR. MedMDR lee archivos RAR con SharpCompress y
 **no crea** archivos RAR. «WinRAR» y «RAR» son marcas de sus propietarios.

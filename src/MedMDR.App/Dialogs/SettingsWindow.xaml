@@ -1,0 +1,153 @@
+<Window x:Class="MedMDR.Wpf.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configuración" Width="780" Height="660" MinWidth="680" MinHeight="520" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSizeBody}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TabControl Margin="20,16,20,0">
+            <!-- ================= Interfaz ================= -->
+            <TabItem Header="Interfaz">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Tema" Style="{StaticResource SectionTitle}" />
+                        <RadioButton x:Name="TSys" GroupName="theme" Content="Predeterminado del sistema" Margin="0,3" />
+                        <RadioButton x:Name="TLight" GroupName="theme" Content="Claro" Margin="0,3" />
+                        <RadioButton x:Name="TDark" GroupName="theme" Content="Oscuro" Margin="0,3" />
+                        <TextBlock Text="Ventana" Style="{StaticResource SectionTitle}" />
+                        <CheckBox x:Name="HistoryCheck" Content="Conservar el historial de carpetas" Margin="0,3" />
+                        <CheckBox x:Name="BtnTextCheck" Content="Mostrar el texto de los botones" Margin="0,3" />
+                        <CheckBox x:Name="BigCheck" Content="Iconos grandes en la barra de herramientas" Margin="0,3" />
+                        <CheckBox x:Name="FullTitleCheck" Content="Mostrar la ruta completa en la barra de título" Margin="0,3" />
+                        <CheckBox x:Name="CommentCheck" Content="Mostrar el comentario del archivo al abrirlo" Margin="0,3" />
+                        <CheckBox x:Name="TopCheck" Content="Mantener la ventana siempre visible" Margin="0,3" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Compresión ================= -->
+            <TabItem Header="Compresión">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Formato predeterminado:" Style="{StaticResource FieldLabel}" />
+                        <ComboBox x:Name="FormatBox" Height="32" Width="240" HorizontalAlignment="Left" />
+                        <TextBlock Text="Nivel predeterminado:" Style="{StaticResource FieldLabel}" />
+                        <ComboBox x:Name="LevelBox" Height="32" Width="300" HorizontalAlignment="Left" />
+                        <CheckBox x:Name="SolidCheck" Content="Crear archivos sólidos por defecto" Margin="0,16,0,3" />
+                        <CheckBox x:Name="TestCheck" Content="Verificar siempre al terminar de comprimir" Margin="0,3" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <TextBlock Text="Registro de recuperación por defecto (0 = ninguno):" VerticalAlignment="Center" />
+                            <TextBox x:Name="RecBox" Width="56" Height="30" Margin="10,0,4,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                            <TextBlock Text="%" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="Los perfiles de compresión se guardan desde el diálogo «Añadir» (botón Perfiles)." Style="{StaticResource Hint}" Margin="0,16,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Carpetas ================= -->
+            <TabItem Header="Carpetas">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Carpeta predeterminada para crear archivos (vacío = la actual):" Style="{StaticResource FieldLabel}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBox x:Name="ArcFolder" Height="34" VerticalContentAlignment="Center" Padding="8,0" />
+                            <Button Grid.Column="1" Content="Examinar…" Margin="8,0,0,0" Padding="14,7" Click="BrowseFolder_Click" Tag="ArcFolder" />
+                        </Grid>
+                        <TextBlock Text="Carpeta predeterminada para extraer (vacío = junto al archivo):" Style="{StaticResource FieldLabel}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBox x:Name="ExtFolder" Height="34" VerticalContentAlignment="Center" Padding="8,0" />
+                            <Button Grid.Column="1" Content="Examinar…" Margin="8,0,0,0" Padding="14,7" Click="BrowseFolder_Click" Tag="ExtFolder" />
+                        </Grid>
+                        <TextBlock Text="Carpeta con la que se abre el programa (vacío = Documentos):" Style="{StaticResource FieldLabel}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBox x:Name="StartFolder" Height="34" VerticalContentAlignment="Center" Padding="8,0" />
+                            <Button Grid.Column="1" Content="Examinar…" Margin="8,0,0,0" Padding="14,7" Click="BrowseFolder_Click" Tag="StartFolder" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Visor ================= -->
+            <TabItem Header="Visor">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Fuente del visor:" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="FontBox" Width="260" Height="32" />
+                            <TextBlock Text="Tamaño" VerticalAlignment="Center" Margin="16,0,8,0" />
+                            <TextBox x:Name="FontSizeBox" Width="56" Height="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                        </StackPanel>
+                        <CheckBox x:Name="WrapCheck" Content="Ajustar las líneas largas" Margin="0,16,0,3" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <TextBlock Text="Máximo que se muestra de cada fichero:" VerticalAlignment="Center" />
+                            <TextBox x:Name="MaxKbBox" Width="80" Height="30" Margin="10,0,4,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                            <TextBlock Text="KB" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Seguridad ================= -->
+            <TabItem Header="Seguridad">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <CheckBox x:Name="AskDeleteCheck" Content="Pedir confirmación antes de eliminar" Margin="0,12,0,3" />
+                        <CheckBox x:Name="BrokenCheck" Content="Conservar los ficheros dañados al extraer" Margin="0,3" />
+                        <TextBlock Text="Si el fichero ya existe al extraer:" Style="{StaticResource FieldLabel}" Margin="0,14,0,4" />
+                        <ComboBox x:Name="OverwriteBox" Height="32" Width="300" HorizontalAlignment="Left" />
+                        <TextBlock x:Name="PrivacyText" Style="{StaticResource Hint}" Margin="0,22,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Actualizaciones ================= -->
+            <TabItem Header="Actualizaciones">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Actualizaciones automáticas" Style="{StaticResource SectionTitle}" />
+                        <TextBlock x:Name="HowText" Style="{StaticResource Hint}" />
+                        <CheckBox x:Name="AutoUpdateCheck" Margin="0,12,0,3" />
+                        <TextBlock Text="Token de acceso de GitHub (solo lectura):" Style="{StaticResource FieldLabel}" Margin="0,16,0,4" />
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <PasswordBox x:Name="TokenBox" Height="34" VerticalContentAlignment="Center" Padding="8,0" />
+                            <Button Grid.Column="1" Content="Quitar" Margin="8,0,0,0" Padding="14,7" Click="ClearToken_Click" />
+                        </Grid>
+                        <TextBlock x:Name="TokenState" Style="{StaticResource Hint}" Margin="0,6,0,0" />
+                        <TextBlock x:Name="TokenHelp" Style="{StaticResource Hint}" Margin="0,12,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ================= Integración ================= -->
+            <TabItem Header="Integración">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16,4,16,12">
+                        <TextBlock Text="Integración con el Explorador de Windows" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Text="Solo modifica tu usuario (HKEY_CURRENT_USER): no necesita permisos de administrador y se puede quitar por completo." Style="{StaticResource Hint}" />
+                        <CheckBox x:Name="AssocCheck" IsChecked="True" Margin="0,16,0,3" />
+                        <CheckBox x:Name="MenuCheck" IsChecked="True" Margin="0,3" />
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Button x:Name="IntegrateButton" Padding="16,7" Click="Integrate_Click" />
+                            <Button Content="Quitar la integración" Margin="8,0,0,0" Padding="16,7" Click="RemoveIntegration_Click" />
+                        </StackPanel>
+                        <TextBlock x:Name="IntState" Style="{StaticResource Hint}" Margin="0,12,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,14,20,18">
+            <Button Content="Aceptar" Style="{DynamicResource AccentButtonStyle}" IsDefault="True" MinWidth="104" Padding="16,7" Click="Ok_Click" />
+            <Button Content="Cancelar" IsCancel="True" MinWidth="104" Padding="16,7" Margin="8,0,0,0" />
+        </StackPanel>
+    </Grid>
+</Window>

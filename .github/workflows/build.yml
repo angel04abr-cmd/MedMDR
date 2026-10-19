@@ -16,11 +16,9 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Pruebas
-        run: dotnet test tests/Medrar.Tests/Medrar.Tests.csproj -c Release
+        run: dotnet test tests/MedMDR.Tests/MedMDR.Tests.csproj -c Release
 
       - name: Compilar todo
         shell: pwsh
         run: ./build.ps1
 
-      - name: Compilar la interfaz nueva (WPF, en desarrollo)
-        run: dotnet build src/Medrar.Wpf/Medrar.Wpf.csproj -c Release
