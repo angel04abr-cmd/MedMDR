@@ -30,7 +30,7 @@ internal sealed partial class MainForm : Form
 
     private readonly MenuStrip _menu = new();
     private readonly ToolStrip _tools = new();
-    private readonly ListView _list = new();
+    private readonly FluentListView _list = new();
     private readonly TextBox _address = new();
     private readonly ToolStripButton _up = new();
     private readonly StatusStrip _status = new();
@@ -46,6 +46,7 @@ internal sealed partial class MainForm : Form
     public MainForm(string? openPath)
     {
         Text = "Medrar";
+        Font = Fluent.UiFont;
         Icon = AppIcons.App;
         AutoScaleMode = AutoScaleMode.Dpi;
         StartPosition = FormStartPosition.CenterScreen;
@@ -61,15 +62,18 @@ internal sealed partial class MainForm : Form
         BuildList();
         BuildStatus();
 
-        var addressPanel = new Panel { Dock = DockStyle.Top, Height = 34, Padding = new Padding(6, 4, 6, 4) };
-        addressPanel.Controls.Add(_address);
-        var upBtn = new Button { Image = Icons.Get(IconKind.Up, 16), Dock = DockStyle.Left, Width = 32, FlatStyle = FlatStyle.Flat, TabStop = false };
-        upBtn.FlatAppearance.BorderSize = 0;
+        var addressPanel = new Panel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(10, 6, 10, 6) };
+        var addressHost = new RoundedPanel { Dock = DockStyle.Fill, Padding = new Padding(10, 7, 10, 0) };
+        _address.Dock = DockStyle.Fill;
+        _address.BorderStyle = BorderStyle.None;
+        addressHost.Controls.Add(_address);
+        var upBtn = new FluentButton { Image = Icons.Get(IconKind.Up, 16), Dock = DockStyle.Left, Width = 36, TabStop = false, Margin = Padding.Empty };
         upBtn.Click += (_, _) => GoUp();
         new ToolTip().SetToolTip(upBtn, "Subir un nivel (Retroceso)");
+        var gap = new Panel { Dock = DockStyle.Left, Width = 8 };
+        addressPanel.Controls.Add(addressHost);
+        addressPanel.Controls.Add(gap);
         addressPanel.Controls.Add(upBtn);
-        addressPanel.Controls.SetChildIndex(_address, 0);
-        _address.Dock = DockStyle.Fill;
 
         Controls.Add(_list);
         Controls.Add(_comment);
@@ -107,7 +111,6 @@ internal sealed partial class MainForm : Form
 
     private void BuildAddressBar()
     {
-        _address.BorderStyle = BorderStyle.FixedSingle;
         _comment.BorderStyle = BorderStyle.FixedSingle;
         _address.KeyDown += (_, e) =>
         {
@@ -120,6 +123,23 @@ internal sealed partial class MainForm : Form
         };
     }
 
+    private static readonly int[] MinColumnWidths = { 220, 90, 112, 140, 150, 90 };
+
+    /// <summary>Solo pruebas: abre el menú número <paramref name="index"/> y devuelve el rectángulo de pantalla que ocupa su lista.</summary>
+    internal Rectangle SnapshotOpenMenu(int index)
+    {
+        var item = (ToolStripMenuItem)_menu.Items[index];
+        item.ShowDropDown();
+        Application.DoEvents();
+        if (item.DropDownItems.Count > 1) { item.DropDownItems[1].Select(); }
+        return item.DropDown.Bounds;
+    }
+
+    internal void SnapshotSelect(int index)   // solo para las capturas de prueba
+    {
+        if (index >= 0 && index < _list.Items.Count) { _list.Items[index].Selected = true; _list.Items[index].Focused = true; _list.Focus(); }
+    }
+
     private void BuildList()
     {
         _list.Dock = DockStyle.Fill;
@@ -127,14 +147,14 @@ internal sealed partial class MainForm : Form
         _list.FullRowSelect = true;
         _list.HideSelection = false;
         _list.MultiSelect = true;
-        _list.SmallImageList = FileIcons.List;
+        _list.IconSource = FileIcons.List;
         _list.AllowDrop = true;
         _list.BorderStyle = BorderStyle.None;
         _list.GridLines = false;
         _list.DoubleBuffered(true);
         string[] cols = { "Nombre", "Tamaño", "Comprimido", "Tipo", "Modificado", "CRC32" };
         for (int i = 0; i < cols.Length; i++)
-            _list.Columns.Add(new ColumnHeader { Text = cols[i], Width = i < _settings.ColumnWidths.Length ? _settings.ColumnWidths[i] : 100, TextAlign = i is 1 or 2 ? HorizontalAlignment.Right : HorizontalAlignment.Left });
+            _list.Columns.Add(new ColumnHeader { Text = cols[i], Width = Math.Max(MinColumnWidths[i], i < _settings.ColumnWidths.Length ? _settings.ColumnWidths[i] : 100), TextAlign = i is 1 or 2 ? HorizontalAlignment.Right : HorizontalAlignment.Left });
         _list.ColumnClick += (_, e) =>
         {
             if (_sortCol == e.Column) _sortAsc = !_sortAsc; else { _sortCol = e.Column; _sortAsc = true; }
@@ -167,7 +187,7 @@ internal sealed partial class MainForm : Form
         _status.SizingGrip = true;
     }
 
-    private void ApplySort() { _list.Sort(); }
+    private void ApplySort() { _list.SortColumn = _sortCol; _list.SortAscending = _sortAsc; _list.Sort(); _list.Invalidate(); }
 
     private sealed class NodeSorter : IComparer
     {
@@ -206,10 +226,10 @@ internal sealed partial class MainForm : Form
         _list.BeginUpdate();
         _list.Items.Clear();
         if (withUp)
-            _list.Items.Add(new ListViewItem("..", FileIcons.Up) { Tag = new Node { Name = "..", IsDir = true, IsUp = true } });
+            _list.Items.Add(new IconItem("..", FileIcons.Up) { Tag = new Node { Name = "..", IsDir = true, IsUp = true } });
         foreach (var n in nodes)
         {
-            var it = new ListViewItem(n.Name, FileIcons.For(n.Name, n.IsDir)) { Tag = n };
+            var it = new IconItem(n.Name, FileIcons.For(n.Name, n.IsDir)) { Tag = n };
             it.SubItems.Add(n.IsDir && !InArchive ? "" : n.IsDir ? "" : n.Size.ToString("N0"));
             it.SubItems.Add(!InArchive || n.IsDir || n.Packed < 0 ? "" : n.Packed.ToString("N0"));
             it.SubItems.Add(FileIcons.TypeName(n.Name, n.IsDir));
@@ -219,6 +239,7 @@ internal sealed partial class MainForm : Form
         }
         _list.Sort();
         _list.EndUpdate();
+        _list.FitColumns();
         UpdateStatus();
         UpdateToolbarState();
     }

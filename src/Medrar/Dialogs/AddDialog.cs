@@ -104,7 +104,7 @@ internal sealed class AddDialog : DialogBase
         }, 190);
         var commentPage = UI.Page(UI.Label("Texto que se guardará dentro del archivo:"), _comment, loadComment);
 
-        var tabs = new TabControl { Dock = DockStyle.Fill };
+        var tabs = new FluentTabControl { Dock = DockStyle.Fill };
         tabs.TabPages.Add(UI.Tab("General", general));
         tabs.TabPages.Add(UI.Tab("Avanzado", advanced));
         tabs.TabPages.Add(UI.Tab("Comentario", commentPage));

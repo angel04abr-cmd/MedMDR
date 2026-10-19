@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Medrar.Core;
 using Microsoft.Win32;
 
@@ -19,9 +19,6 @@ internal static class Theme
 
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
     private static extern int SetWindowTheme(IntPtr hwnd, string? subApp, string? subIdList);
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
     public static bool SystemUsesDark()
     {
@@ -62,11 +59,7 @@ internal static class Theme
     /// <summary>Aplica el tema a un formulario y a todos sus controles.</summary>
     public static void Style(Control root)
     {
-        if (root is Form f)
-        {
-            int dark = IsDark ? 1 : 0;
-            try { DwmSetWindowAttribute(f.Handle, 20, ref dark, 4); } catch { }
-        }
+        if (root is Form f) Fluent.ApplyWindow(f);
         StyleRec(root);
     }
 
@@ -78,17 +71,20 @@ internal static class Theme
                 c.BackColor = Back; c.ForeColor = Fore; break;
             case ListView lv:
                 lv.BackColor = ListBack; lv.ForeColor = Fore;
-                if (lv.IsHandleCreated) SetWindowTheme(lv.Handle, IsDark ? "DarkMode_Explorer" : "Explorer", null);
+                // La lista Fluent dibuja ella misma las filas; el tema «Explorer» pintaría encima su propia selección azul.
+                if (lv.IsHandleCreated) SetWindowTheme(lv.Handle, lv is FluentListView ? (IsDark ? "DarkMode_Explorer" : "") : (IsDark ? "DarkMode_Explorer" : "Explorer"), null);
                 break;
             case TreeView tv:
                 tv.BackColor = ListBack; tv.ForeColor = Fore;
                 if (tv.IsHandleCreated) SetWindowTheme(tv.Handle, IsDark ? "DarkMode_Explorer" : "Explorer", null);
                 break;
-            case TextBox or RichTextBox or ComboBox or NumericUpDown or ListBox:
+            case ComboBox cb:
+                cb.FlatStyle = FlatStyle.Flat; cb.BackColor = ListBack; cb.ForeColor = Fore; break;
+            case TextBox or RichTextBox or NumericUpDown or ListBox:
                 c.BackColor = ListBack; c.ForeColor = Fore; break;
             case ToolStrip ts:
-                ts.Renderer = new ThemedRenderer();
-                ts.BackColor = PanelBack; ts.ForeColor = Fore;
+                ts.Renderer = new FluentRenderer();
+                ts.BackColor = ts is ToolStripDropDown ? PanelBack : Back; ts.ForeColor = Fore;
                 foreach (ToolStripItem it in ts.Items) it.ForeColor = Fore;
                 break;
             case TabControl or TabPage or Panel or GroupBox or CheckBox or RadioButton or Label or TableLayoutPanel or FlowLayoutPanel or SplitContainer:
@@ -103,50 +99,15 @@ internal static class Theme
     {
         foreach (ToolStripItem i in items)
         {
+            if (i.Owner is ToolStripDropDown owner)
+            {
+                owner.Renderer = new FluentRenderer();
+                owner.BackColor = PanelBack; owner.ForeColor = Fore;
+                if (owner.Tag as string != "redondo") { owner.Tag = "redondo"; Fluent.RoundPopup(owner); }
+            }
             i.ForeColor = Fore;
             if (i is ToolStripMenuItem m) StyleMenu(m.DropDownItems);
         }
     }
-
-    private sealed class ThemedRenderer : ToolStripProfessionalRenderer
-    {
-        public ThemedRenderer() : base(new Colors()) { RoundedEdges = false; }
-        protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e) { }
-    }
-
-    private sealed class Colors : ProfessionalColorTable
-    {
-        public Colors() { UseSystemColors = false; }
-        public override Color ToolStripGradientBegin => PanelBack;
-        public override Color ToolStripGradientMiddle => PanelBack;
-        public override Color ToolStripGradientEnd => PanelBack;
-        public override Color MenuStripGradientBegin => PanelBack;
-        public override Color MenuStripGradientEnd => PanelBack;
-        public override Color ToolStripDropDownBackground => IsDark ? Color.FromArgb(0x2B, 0x2B, 0x2B) : Color.White;
-        public override Color ImageMarginGradientBegin => ToolStripDropDownBackground;
-        public override Color ImageMarginGradientMiddle => ToolStripDropDownBackground;
-        public override Color ImageMarginGradientEnd => ToolStripDropDownBackground;
-        public override Color MenuItemSelected => Selection;
-        public override Color MenuItemSelectedGradientBegin => Selection;
-        public override Color MenuItemSelectedGradientEnd => Selection;
-        public override Color MenuItemPressedGradientBegin => Selection;
-        public override Color MenuItemPressedGradientEnd => Selection;
-        public override Color MenuItemBorder => Selection;
-        public override Color MenuBorder => Border;
-        public override Color ButtonSelectedHighlight => Selection;
-        public override Color ButtonSelectedGradientBegin => Selection;
-        public override Color ButtonSelectedGradientMiddle => Selection;
-        public override Color ButtonSelectedGradientEnd => Selection;
-        public override Color ButtonPressedGradientBegin => Accent;
-        public override Color ButtonPressedGradientMiddle => Accent;
-        public override Color ButtonPressedGradientEnd => Accent;
-        public override Color ButtonSelectedBorder => Accent;
-        public override Color ButtonPressedBorder => Accent;
-        public override Color SeparatorDark => Border;
-        public override Color SeparatorLight => Border;
-        public override Color StatusStripGradientBegin => PanelBack;
-        public override Color StatusStripGradientEnd => PanelBack;
-        public override Color GripDark => Border;
-        public override Color GripLight => Border;
-    }
 }
+

@@ -128,7 +128,7 @@ Un autoextraíble es de solo lectura en Medrar; *Herramientas → Quitar el mód
 - **Herramientas:** asistente paso a paso, convertir entre formatos, reparar, autoextraíbles, buscar texto o bytes
   (en carpetas y dentro de archivos), información, informe (HTML/TXT), prueba de velocidad.
 - **Favoritos**, historial, archivos recientes, perfiles de compresión, importar/exportar configuración.
-- **Temas** claro/oscuro/sistema, arrastrar y soltar (dentro y fuera), menú contextual.
+- **Aspecto estilo Fluent (Windows 11):** barra de título del color del tema, esquinas redondeadas, filas con selección redondeada, botones y menús\n  redondeados y pestañas planas. **Temas** claro/oscuro/sistema, arrastrar y soltar (dentro y fuera), menú contextual.
 - **Integración con Windows** opcional (Configuración → Integración): asociar `.mdr` y menú del botón derecho.
   Solo escribe en tu usuario (HKCU) y se quita con un clic.
 

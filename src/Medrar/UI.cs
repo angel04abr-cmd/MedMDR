@@ -17,7 +17,7 @@ internal static class UI
 
     public static Button Button(string text, EventHandler? click = null, int width = 96, DialogResult result = DialogResult.None)
     {
-        var b = new Button { Text = text, Width = width, Height = 30, Margin = new Padding(4, 4, 0, 4), DialogResult = result, UseVisualStyleBackColor = true };
+        var b = new FluentButton { Text = text, Width = width, Height = 32, Margin = new Padding(4, 4, 0, 4), DialogResult = result };
         if (click != null) b.Click += click;
         return b;
     }
@@ -124,7 +124,7 @@ internal class DialogBase : Form
         StartPosition = FormStartPosition.CenterParent;
         Icon = AppIcons.App;
         AutoScaleMode = AutoScaleMode.Dpi;
-        Font = SystemFonts.MessageBoxFont ?? Font;
+        Font = Fluent.UiFont;
     }
 
     protected override void OnShown(EventArgs e)

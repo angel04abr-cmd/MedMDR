@@ -44,7 +44,7 @@ internal sealed class SettingsDialog : DialogBase
     public SettingsDialog(AppSettings s) : base("Configuración")
     {
         _s = s;
-        ClientSize = new Size(620, 520);
+        ClientSize = new Size(700, 520);
 
         foreach (var f in new System.Drawing.Text.InstalledFontCollection().Families.Where(f => f.IsStyleAvailable(FontStyle.Regular)).Select(f => f.Name)) _font.Items.Add(f);
         _tSys.Checked = s.Theme == ThemeMode.System; _tLight.Checked = s.Theme == ThemeMode.Light; _tDark.Checked = s.Theme == ThemeMode.Dark;
@@ -94,7 +94,7 @@ internal sealed class SettingsDialog : DialogBase
             UI.Row(UI.Button("Integrar Medrar", Integrate, 140), UI.Button("Quitar la integración", Remove, 160)), _intState);
         UpdateIntegrationState();
 
-        var tabs = new TabControl { Dock = DockStyle.Fill };
+        var tabs = new FluentTabControl { Dock = DockStyle.Fill };
         tabs.TabPages.Add(UI.Tab("Interfaz", ui));
         tabs.TabPages.Add(UI.Tab("Compresión", comp));
         tabs.TabPages.Add(UI.Tab("Carpetas", folders));

@@ -109,6 +109,18 @@ internal static class SnapshotTool
         form.Show();
         Pump(l.SnapshotDialog == "benchmark" ? 9000 : 1800);
         if (l.ThenTheme != null && form is MainForm main) { main.ChangeTheme(l.ThenTheme.Value); Pump(1200); }
+        if (l.SelectRow >= 0 && form is MainForm sel) { sel.SnapshotSelect(l.SelectRow); Pump(500); }
+        if (l.OpenMenu >= 0 && form is MainForm mm)
+        {
+            var drop = mm.SnapshotOpenMenu(l.OpenMenu);
+            Pump(900);
+            var area = Rectangle.Union(form.Bounds, drop);
+            using var shot = new Bitmap(area.Width, area.Height);
+            using (var gg = Graphics.FromImage(shot)) gg.CopyFromScreen(area.Location, Point.Empty, area.Size);
+            shot.Save(l.SnapshotFile!, System.Drawing.Imaging.ImageFormat.Png);
+            form.Close();
+            return 0;
+        }
         Save(form, l.SnapshotFile!);
         form.Close();
         return 0;

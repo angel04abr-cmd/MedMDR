@@ -144,12 +144,12 @@ internal sealed partial class MainForm
     {
         _tools.GripStyle = ToolStripGripStyle.Hidden;
         _tools.ImageScalingSize = _settings.LargeIcons ? new Size(32, 32) : new Size(20, 20);
-        _tools.Padding = new Padding(6, 2, 6, 2);
+        _tools.Padding = new Padding(8, 4, 8, 4);
         void Add(string key, string text, IconKind icon, string tip, Action act)
         {
             var b = new ToolStripButton(_settings.ShowButtonText ? text : "", Icons.Get(icon, _settings.LargeIcons ? 32 : 20), (_, _) => act())
             {
-                TextImageRelation = TextImageRelation.ImageAboveText, ToolTipText = tip, AutoToolTip = false, Margin = new Padding(2, 2, 2, 2),
+                TextImageRelation = TextImageRelation.ImageAboveText, ToolTipText = tip, AutoToolTip = false, Margin = new Padding(2, 2, 2, 2), Padding = new Padding(8, 4, 8, 4),
                 ImageScaling = ToolStripItemImageScaling.None
             };
             _btn[key] = b;

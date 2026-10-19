@@ -61,6 +61,8 @@ internal sealed class Launch
     public string? SnapshotDialog;
     public string? Password;
     public ThemeMode? ThemeOverride;
+    public int OpenMenu = -1;                 // solo pruebas: abre un menú de la barra y captura la pantalla
+    public int SelectRow = -1;                // solo pruebas: selecciona una fila antes de la captura
     public ThemeMode? ThenTheme;               // solo pruebas: cambia de tema con la ventana abierta, antes de la captura
 
     public static Launch Parse(string[] args)
@@ -76,6 +78,8 @@ internal sealed class Launch
                 case "--test": l.Mode = "test"; break;
                 case "--snapshot": l.Mode = "snapshot"; l.SnapshotFile = args[++i]; break;
                 case "--dialog": l.SnapshotDialog = args[++i]; break;
+                case "--open-menu": l.OpenMenu = int.Parse(args[++i]); break;
+                case "--select": l.SelectRow = int.Parse(args[++i]); break;
                 case "--password": l.Password = args[++i]; break;
                 case "--theme": l.ThemeOverride = args[++i] == "dark" ? ThemeMode.Dark : ThemeMode.Light; break;
                 case "--then-theme": l.ThenTheme = args[++i] == "dark" ? ThemeMode.Dark : ThemeMode.Light; break;
