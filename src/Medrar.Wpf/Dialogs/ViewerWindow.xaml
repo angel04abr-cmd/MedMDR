@@ -1,0 +1,42 @@
+<Window x:Class="Medrar.Wpf.ViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Medrar.Wpf"
+        Title="MedMDR" Width="900" Height="640" MinWidth="520" MinHeight="320" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSizeBody}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel x:Name="Tools" Grid.Row="0" Orientation="Horizontal" Margin="12,8,12,6">
+            <Button x:Name="EncodingButton" Padding="12,6" Margin="0,0,6,0" Click="Encoding_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Codificación" VerticalAlignment="Center" />
+                    <local:Icon Kind="ChevronDown" Size="12" Margin="8,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button.ContextMenu>
+                    <ContextMenu x:Name="EncodingMenu" />
+                </Button.ContextMenu>
+            </Button>
+            <ToggleButton x:Name="HexToggle" Content="Hexadecimal" Padding="12,6" Margin="0,0,6,0" Click="Hex_Click" />
+            <ToggleButton x:Name="WrapToggle" Content="Ajustar líneas" Padding="12,6" Margin="0,0,6,0" Click="Wrap_Click" />
+            <Button Content="Buscar (Ctrl+F)" Padding="12,6" Margin="0,0,6,0" Click="Find_Click" />
+            <Button Content="Copiar" Padding="12,6" Click="Copy_Click" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Margin="12,0,12,6" CornerRadius="{StaticResource RadiusCard}" BorderThickness="1"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+            <Grid>
+                <TextBox x:Name="Text" IsReadOnly="True" BorderThickness="0" Background="Transparent" Padding="12,10" AcceptsReturn="True"
+                         HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                <Image x:Name="Picture" Margin="12" Stretch="Uniform" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality" />
+            </Grid>
+        </Border>
+
+        <TextBlock x:Name="Status" Grid.Row="2" Margin="18,2,18,10" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Grid>
+</Window>

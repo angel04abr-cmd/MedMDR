@@ -37,6 +37,39 @@ internal static class DevTools
         File.WriteAllText(file, sb.ToString());
     }
 
+    private static int _shotCounter;
+
+    /// <summary>Con --shots-dir, cada diálogo que se abre se fotografía a los 1,3 s y se cierra (devuelve el resultado «cancelar»).</summary>
+    public static void Hook(Window dialog)
+    {
+        string? dir = App.Args.ShotsDir;
+        if (dir == null) return;
+        dialog.Loaded += (_, _) =>
+        {
+            var t = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1300) };
+            t.Tick += (_, _) =>
+            {
+                t.Stop();
+                try
+                {
+                    Directory.CreateDirectory(dir);
+                    string name = new string(dialog.Title.Where(char.IsLetterOrDigit).ToArray());
+                    Save(dialog, Path.Combine(dir, $"{++_shotCounter:00}-{dialog.GetType().Name}-{name}.png"));
+                }
+                catch (Exception ex) { ErrorLog.Write(ex); }
+                dialog.Close();
+            };
+            t.Start();
+        };
+    }
+
+    /// <summary>Crea un diálogo suelto (con datos de ejemplo) para poder capturarlo con --dialog.</summary>
+    public static Window CreateDialog(string name) => name switch
+    {
+        "about" => new AboutWindow(),
+        _ => throw new ArgumentException("Diálogo desconocido: " + name)
+    };
+
     /// <summary>Espera a que la ventana se pinte, guarda una captura (con barra de título) y cierra la aplicación.</summary>
     public static void SnapshotLater(Window window, LaunchArgs args)
     {
@@ -44,6 +77,7 @@ internal static class DevTools
         {
             try
             {
+                if (args.Auto != null && window is MainWindow auto) auto.RunAuto(args.Auto);
                 if (args.SelectRow >= 0 && window is MainWindow mw) mw.SelectRowForSnapshot(args.SelectRow);
                 window.Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
                 Save(window, args.Snapshot!);

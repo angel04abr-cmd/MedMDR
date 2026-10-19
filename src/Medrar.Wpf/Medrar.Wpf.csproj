@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Resource Include="..\Medrar\Resources\medrar.ico" Link="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Medrar.Core\Medrar.Core.csproj" />
   </ItemGroup>
 

@@ -21,7 +21,7 @@ public partial class App : Application
             return;
         }
 
-        var window = new MainWindow(Args.Path);
+        Window window = Args.Dialog != null ? DevTools.CreateDialog(Args.Dialog) : new MainWindow(Args.Path);
         window.Show();
         if (Args.Snapshot != null) DevTools.SnapshotLater(window, Args);
     }
@@ -35,6 +35,12 @@ public sealed class LaunchArgs
     public string? ThenTheme;               // solo pruebas: cambia de tema con la ventana abierta, antes de la captura
     public string? Snapshot;
     public string? DumpKeys;
+    public string? Dialog;
+    public string? Auto;                    // solo pruebas: órdenes separadas por comas que se ejecutan solas (select:N,open,test,info,view,extract-here…)
+    public string? ShotsDir;                // solo pruebas: carpeta donde se guarda una captura de cada diálogo que se abra
+    public string? Password;
+    public bool AutoYes;                    // solo pruebas: responde «Sí/Aceptar» a las preguntas sin mostrarlas
+    public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto                // contraseña para abrir archivos cifrados (también sirve para las pruebas)                  // solo pruebas: abre un diálogo suelto para capturarlo
     public int SelectRow = -1;
 
     public static LaunchArgs Parse(string[] args)
@@ -47,6 +53,12 @@ public sealed class LaunchArgs
                 case "--theme": l.Theme = args[++i]; break;
                 case "--then-theme": l.ThenTheme = args[++i]; break;
                 case "--snapshot": l.Snapshot = args[++i]; break;
+                case "--auto": l.Auto = args[++i]; break;
+                case "--shots-dir": l.ShotsDir = args[++i]; break;
+                case "--yes": l.AutoYes = true; break;
+                case "--text": l.AutoText = args[++i]; break;
+                case "--password": l.Password = args[++i]; break;
+                case "--dialog": l.Dialog = args[++i]; break;
                 case "--dump-keys": l.DumpKeys = args[++i]; break;
                 case "--select": l.SelectRow = int.Parse(args[++i]); break;
                 default: if (File.Exists(args[i]) || Directory.Exists(args[i])) l.Path = args[i]; break;
