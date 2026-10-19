@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MedMDR.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SharpCompress" Version="0.50.5" />
     <PackageReference Include="System.IO.Hashing" Version="10.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />

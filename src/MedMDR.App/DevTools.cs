@@ -89,6 +89,7 @@ internal static class DevTools
         "convert" => new ConvertWindow(Array.Empty<string>(), Environment.CurrentDirectory),
         "find" => new FindWindow(Environment.CurrentDirectory, null, null),
         "password" => new NewPasswordWindow(true, false),
+        "benchmark" => new BenchmarkWindow(),
         _ => throw new ArgumentException("Diálogo desconocido: " + name)
     };
 

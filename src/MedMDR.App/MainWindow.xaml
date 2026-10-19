@@ -59,6 +59,7 @@
                 <MenuItem Header="_Asistente…" Click="Command_Wizard" />
                 <MenuItem Header="Convertir _archivos…" InputGestureText="Alt+Q" Click="Command_Convert" />
                 <MenuItem Header="_Buscar ficheros…" InputGestureText="F3" Click="Command_Find" />
+                <MenuItem Header="_Prueba de velocidad…" InputGestureText="Alt+B" Click="Benchmark_Click" />
             </MenuItem>
             <MenuItem Header="Fa_voritos">
                 <MenuItem Header="_Añadir la ubicación actual a favoritos" Click="AddFavorite_Click" />
@@ -103,10 +104,10 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button x:Name="UpButton" Grid.Column="0" Width="38" Height="34" Padding="0" Margin="0,0,8,0" ToolTip="Subir un nivel (Retroceso)" Click="Up_Click">
+            <Button x:Name="UpButton" AutomationProperties.Name="Subir un nivel" Grid.Column="0" Width="38" Height="34" Padding="0" Margin="0,0,8,0" ToolTip="Subir un nivel (Retroceso)" Click="Up_Click">
                 <local:Icon Kind="Up" Size="18" />
             </Button>
-            <TextBox x:Name="AddressBox" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="10,0" KeyDown="AddressBox_KeyDown" />
+            <TextBox x:Name="AddressBox" AutomationProperties.Name="Ruta actual" Grid.Column="1" Height="34" VerticalContentAlignment="Center" Padding="10,0" KeyDown="AddressBox_KeyDown" />
         </Grid>
 
         <!-- Panel lateral + contenido -->
@@ -117,7 +118,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <ListBox x:Name="Sidebar" Grid.Column="0" Background="Transparent" BorderThickness="0" SelectionChanged="Sidebar_SelectionChanged"
+            <ListBox x:Name="Sidebar" AutomationProperties.Name="Accesos, favoritos y recientes" Grid.Column="0" Background="Transparent" BorderThickness="0" SelectionChanged="Sidebar_SelectionChanged"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.GroupStyle>
                     <GroupStyle>
@@ -165,7 +166,7 @@
                 </Border>
                 <Border Grid.Row="1" CornerRadius="{StaticResource RadiusCard}" BorderThickness="1"
                         Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
-                    <ListView x:Name="FileList" BorderThickness="0" Background="Transparent" SelectionMode="Extended"
+                    <ListView x:Name="FileList" AutomationProperties.Name="Lista de ficheros" BorderThickness="0" Background="Transparent" SelectionMode="Extended"
                               ItemContainerStyle="{StaticResource FileRowStyle}" Margin="2,4,2,4"
                               MouseDoubleClick="FileList_MouseDoubleClick" SelectionChanged="FileList_SelectionChanged"
                               GridViewColumnHeader.Click="Header_Click" SizeChanged="FileList_SizeChanged" ContextMenuOpening="FileList_ContextMenuOpening"

@@ -329,6 +329,7 @@ public partial class MainWindow : Window
         else if (mods == ModifierKeys.Alt && key == Key.M) Command_Comment(this, args);
         else if (mods == ModifierKeys.Alt && key == Key.X) Command_Sfx(this, args);
         else if (mods == ModifierKeys.Alt && key == Key.Q) Command_Convert(this, args);
+        else if (mods == ModifierKeys.Alt && key == Key.B) Benchmark_Click(this, args);
         else handled = false;
         if (handled) e.Handled = true;
     }
@@ -482,6 +483,8 @@ public partial class MainWindow : Window
 
     // ------------------------------------------------------------------ tema
 
+    private void Benchmark_Click(object sender, RoutedEventArgs e) => BenchmarkWindow.Open(this);
+
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e) => await Updates.CheckNowAsync(this, _settings);
 
     private void Theme_Click(object sender, RoutedEventArgs e)
@@ -526,6 +529,7 @@ public partial class MainWindow : Window
                 case "extract": Command_Extract(this, noArgs); break;
                 case "convert": Command_Convert(this, noArgs); break;
                 case "wizard": Command_Wizard(this, noArgs); break;
+                case "benchmark": Benchmark_Click(this, noArgs); break;
                 case "dragprep": Say("ARRASTRE: " + string.Join(" | ", PrepareDragPaths())); break;           // solo pruebas
                 case "menu":                                                                                   // solo pruebas
                     FileList_ContextMenuOpening(this, null!);

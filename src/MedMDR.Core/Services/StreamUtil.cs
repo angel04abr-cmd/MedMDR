@@ -231,6 +231,14 @@ internal static class Codec
         return Math.Clamp(bits, 16, 24);
     }
 
+    /// <summary>
+    /// Una ventana más grande que los propios datos no comprime mejor, pero reservar y limpiar la memoria de un codificador Brotli de
+    /// ventana grande cuesta ~10 ms por fichero (con 100 000 ficheros pequeños eran 20 minutos). Se acota al tamaño del fichero.
+    /// Es solo del compresor: el descompresor lee la ventana del propio flujo.
+    /// </summary>
+    public static int WindowFor(long sizeHint, int window) =>
+        sizeHint > 0 ? Math.Min(window, Math.Max(10, (int)Math.Ceiling(Math.Log2(sizeHint)))) : window;
+
     public static Stream CreateCompressor(byte method, Stream dest, int level, int dictionaryKb, long sizeHint = -1)
     {
         switch (method)
@@ -239,7 +247,7 @@ internal static class Codec
             case Deflate:
                 return new DeflateStream(dest, new ZLibCompressionOptions { CompressionLevel = Math.Clamp(level * 2 - 1, 1, 9) }, leaveOpen: true);
             case Brotli:
-                return new BrotliEncoderStream(dest, BrotliQuality(level), WindowBits(dictionaryKb, level));
+                return new BrotliEncoderStream(dest, BrotliQuality(level), WindowFor(sizeHint, WindowBits(dictionaryKb, level)));
             case Lzma:
                 return new LzmaEncodeStream(dest, LzmaDictionary(dictionaryKb, sizeHint));
             default: throw new UnsupportedFormatException("Método de compresión desconocido.");
@@ -278,7 +286,7 @@ internal sealed class BrotliEncoderStream : Stream
 {
     private readonly Stream _dest;
     private BrotliEncoder _enc;
-    private readonly byte[] _out = new byte[64 * 1024];
+    private readonly byte[] _out = System.Buffers.ArrayPool<byte>.Shared.Rent(64 * 1024);
     private bool _done;
 
     public BrotliEncoderStream(Stream dest, int quality, int window)
@@ -312,6 +320,7 @@ internal sealed class BrotliEncoderStream : Stream
                 if (written > 0) _dest.Write(_out, 0, written);
             } while (st == System.Buffers.OperationStatus.DestinationTooSmall);
             _enc.Dispose();
+            System.Buffers.ArrayPool<byte>.Shared.Return(_out);
         }
         base.Dispose(disposing);
     }

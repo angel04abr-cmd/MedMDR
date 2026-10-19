@@ -1,0 +1,29 @@
+<Window x:Class="MedMDR.Wpf.BenchmarkWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Prueba de velocidad" Width="680" Height="520" MinWidth="560" MinHeight="320" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner" FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSizeBody}">
+    <Grid Margin="28,22,28,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <TextBlock x:Name="StatusText" Text="Midiendo… (unos segundos)" TextWrapping="Wrap" />
+            <ProgressBar x:Name="Busy" IsIndeterminate="True" Height="4" Margin="0,10,0,12" />
+        </StackPanel>
+        <ListView x:Name="Results" Grid.Row="1" ItemContainerStyle="{StaticResource FileRowStyle}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Método" Width="110" DisplayMemberBinding="{Binding Method}" />
+                    <GridViewColumn Header="Nivel" Width="70" DisplayMemberBinding="{Binding Level}" />
+                    <GridViewColumn Header="Comprimir (MB/s)" Width="140" DisplayMemberBinding="{Binding Compress}" />
+                    <GridViewColumn Header="Descomprimir (MB/s)" Width="150" DisplayMemberBinding="{Binding Decompress}" />
+                    <GridViewColumn Header="Tamaño final" Width="100" DisplayMemberBinding="{Binding Ratio}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Grid.Row="2" Content="Cerrar" IsCancel="True" IsDefault="True" HorizontalAlignment="Right" MinWidth="104" Padding="16,7" Margin="0,16,0,0" />
+    </Grid>
+</Window>

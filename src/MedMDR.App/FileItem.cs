@@ -30,6 +30,9 @@ public sealed class FileItem
 
     public string SizeText => IsDirectory || IsUp ? "" : ArchiveReport.FormatSize(Size);
     public string PackedText => IsDirectory || IsUp || Packed < 0 ? "" : ArchiveReport.FormatSize(Packed);
+    /// <summary>Lo que leen los lectores de pantalla al pasar por la fila: nombre, tipo y tamaño.</summary>
+    public override string ToString() => IsUp ? "Subir un nivel" : string.Join(", ", new[] { Name, TypeName, SizeText }.Where(x => !string.IsNullOrEmpty(x)));
+
     public string ModifiedText => IsUp || Modified == default ? "" : Modified.ToString("dd/MM/yyyy HH:mm");
     public string CrcText => Crc ?? "";
 
@@ -109,6 +112,8 @@ internal sealed class FileItemComparer : System.Collections.IComparer
 /// <summary>Un acceso del panel lateral: carpeta, unidad, archivo reciente o favorito.</summary>
 public sealed class NavItem
 {
+    public override string ToString() => Title;
+
     public string Section { get; init; } = "";
     public string Title { get; init; } = "";
     public string Path { get; init; } = "";

@@ -10,6 +10,7 @@
         <Setter Property="Margin" Value="1,0" />
         <Setter Property="MinWidth" Value="64" />
         <Setter Property="Focusable" Value="True" />
+        <Setter Property="AutomationProperties.Name" Value="{Binding Label, RelativeSource={RelativeSource Self}}" />
         <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisualStyle}" />
         <Setter Property="Template">
             <Setter.Value>
