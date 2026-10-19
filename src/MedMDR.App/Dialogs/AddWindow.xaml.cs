@@ -111,7 +111,7 @@ public partial class AddWindow : Window
         {
             ArchiveFormat.Mdr => $"Formato propio de {AppInfo.Name}: solo lo abre {AppInfo.Name}. Para compartir con otros programas elige ZIP o 7Z.",
             ArchiveFormat.Zip => "Lo abre cualquier programa. Con contraseña usa AES-256 (los nombres de los ficheros no se cifran).",
-            ArchiveFormat.SevenZip => "Lo abren 7-Zip, WinRAR y otros. Con contraseña usa AES-256 y puedes cifrar también los nombres.",
+            ArchiveFormat.SevenZip => "Lo abren 7-Zip y otros programas. Con contraseña usa AES-256 y puedes cifrar también los nombres.",
             ArchiveFormat.TarGz => "Habitual en Linux y macOS. Sin contraseña.",
             ArchiveFormat.Tar => "Sin compresión ni contraseña (empaqueta ficheros).",
             _ => "Comprime un único fichero. Sin contraseña."

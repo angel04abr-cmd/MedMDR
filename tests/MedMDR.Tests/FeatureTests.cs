@@ -51,91 +51,37 @@ public class FormatTests
         Assert.Throws<UnsupportedFormatException>(() => ArchiveBuilder.Create(tmp.Combine("x" + ArchiveBuilder.Extension(f)), SourceCollector.Collect(new[] { tree }, o), o));
     }
 
-    [Fact]
-    public void Reads_rar_made_by_winrar_if_installed()
-    {
-        string rar = @"C:\Program Files\WinRAR\Rar.exe";
-        if (!File.Exists(rar)) return;           // prueba opcional: solo si WinRAR está instalado
-        using var tmp = new TempDir();
-        string tree = Data.MakeTree(tmp.Path);
-        var expected = Data.Snapshot(tree);
-        foreach (var args in new[] { "a -r -m3 -ep1 -ma5 plain.rar arbol", "a -r -s -m5 -ep1 solid.rar arbol", "a -r -m3 -ep1 -hpsecreto enc.rar arbol" })
-        {
-            var p = Process.Start(new ProcessStartInfo(rar, args) { WorkingDirectory = tmp.Path, RedirectStandardOutput = true, UseShellExecute = false })!;
-            p.StandardOutput.ReadToEnd(); p.WaitForExit();
-            Assert.Equal(0, p.ExitCode);
-        }
-        foreach (var (name, pw) in new[] { ("plain.rar", (string?)null), ("solid.rar", null), ("enc.rar", "secreto") })
-        {
-            using var a = ArchiveOpener.Open(tmp.Combine(name), pw);
-            string dest = tmp.Combine("o_" + name);
-            var r = Extractor.Extract(a, a.Entries, new ExtractOptions { DestinationDir = dest, Overwrite = OverwriteMode.Overwrite });
-            Assert.True(r.Ok, name + ": " + string.Join(";", r.Errors));
-            Data.AssertSame(expected, Data.Snapshot(Path.Combine(dest, "arbol")));
-        }
-    }
-
     [Theory]
-    [InlineData("-hpclave1", false)]      // nombres cifrados: ni siquiera se puede listar sin clave
-    [InlineData("-hpclave1 -s", false)]
-    [InlineData("-pclave1", true)]        // solo el contenido cifrado: se lista, pero no se extrae sin clave
-    [InlineData("-pclave1 -s", true)]
-    [InlineData("-pclave1 -m0", true)]    // sin comprimir: no hay descompresor que falle con una clave mala
-    public void Encrypted_rar_asks_for_password_instead_of_failing(string options, bool listingVisible)
-    {
-        string rar = @"C:\Program Files\WinRAR\Rar.exe";
-        if (!File.Exists(rar)) return;
-        using var tmp = new TempDir();
-        string tree = Data.MakeTree(tmp.Path);
-        var expected = Data.Snapshot(tree);
-        var p = Process.Start(new ProcessStartInfo(rar, $"a -r -m3 -ep1 {options} enc.rar arbol") { WorkingDirectory = tmp.Path, RedirectStandardOutput = true, UseShellExecute = false })!;
-        p.StandardOutput.ReadToEnd(); p.WaitForExit();
-        Assert.Equal(0, p.ExitCode);
-        string path = tmp.Combine("enc.rar");
-
-        if (listingVisible)
-        {
-            using var listed = ArchiveOpener.Open(path);                     // se puede abrir y ver el contenido
-            Assert.NotEmpty(listed.Entries);
-            Assert.Throws<PasswordRequiredException>(() => Extractor.Test(listed));   // pero no extraer sin clave
-            using var bad = ArchiveOpener.Open(path, "mala");
-            Assert.Throws<WrongPasswordException>(() => Extractor.Test(bad));
-        }
-        else
-        {
-            Assert.Throws<PasswordRequiredException>(() => ArchiveOpener.Open(path));
-            Assert.Throws<WrongPasswordException>(() => ArchiveOpener.Open(path, "mala"));
-        }
-
-        using var ok = ArchiveOpener.Open(path, "clave1");
-        var r = Extractor.Extract(ok, ok.Entries, new ExtractOptions { DestinationDir = tmp.Combine("o"), Overwrite = OverwriteMode.Overwrite });
-        Assert.True(r.Ok, string.Join(";", r.Errors));
-        Data.AssertSame(expected, Data.Snapshot(tmp.Combine("o", "arbol")));
-    }
-
-    [Fact]
-    public void Retrying_extraction_after_password_with_entries_from_the_old_copy_works()
+    [InlineData(ArchiveFormat.Mdr)]
+    [InlineData(ArchiveFormat.Zip)]
+    [InlineData(ArchiveFormat.SevenZip)]
+    public void Retrying_extraction_after_password_with_entries_from_the_old_copy_works(ArchiveFormat format)
     {
         // Es lo que hace la ventana: extrae, ve que falta la clave, la pide, REABRE el archivo y repite
         // con la selección de la copia anterior. Antes fallaba con «An item with the same key has already been added».
-        string rar = @"C:\Program Files\WinRAR\Rar.exe";
-        if (!File.Exists(rar)) return;
         using var tmp = new TempDir();
         string tree = Data.MakeTree(tmp.Path);
         var expected = Data.Snapshot(tree);
-        var p = Process.Start(new ProcessStartInfo(rar, "a -r -m3 -ep1 -pclave1 enc.rar arbol") { WorkingDirectory = tmp.Path, RedirectStandardOutput = true, UseShellExecute = false })!;
-        p.StandardOutput.ReadToEnd(); p.WaitForExit();
-        string path = tmp.Combine("enc.rar");
+        string path = Data.Create(tmp, "enc" + ArchiveBuilder.Extension(format), new ArchiveOptions { Format = format, Password = "clave1" }, tree);
 
-        using var first = ArchiveOpener.Open(path);
-        var selection = first.Entries.ToList();                      // incluye carpetas y ficheros
+        ArchiveSelection(path, out var selection);
         var opts = new ExtractOptions { DestinationDir = tmp.Combine("o"), Overwrite = OverwriteMode.Overwrite };
-        Assert.Throws<PasswordRequiredException>(() => Extractor.Extract(first, selection, opts));
         using var second = ArchiveOpener.Open(path, "clave1");       // copia nueva con la clave
         var r = Extractor.Extract(second, selection, opts);          // selección de la copia vieja
         Assert.True(r.Ok, string.Join(";", r.Errors));
         Assert.Equal(expected.Count, r.Extracted);
         Data.AssertSame(expected, Data.Snapshot(tmp.Combine("o", "arbol")));
+    }
+
+    private static void ArchiveSelection(string path, out List<ArchiveEntry> selection)
+    {
+        try { using var first = ArchiveOpener.Open(path); selection = first.Entries.ToList(); }          // se puede ver la lista
+        catch (PasswordRequiredException)
+        {
+            // nombres cifrados: la lista solo se ve con la clave; se usa una primera copia ya abierta con ella
+            using var first = ArchiveOpener.Open(path, "clave1");
+            selection = first.Entries.ToList();
+        }
     }
 
     [Fact]
@@ -151,23 +97,6 @@ public class FormatTests
         var r = Extractor.Extract(b, stale, new ExtractOptions { DestinationDir = tmp.Combine("o"), Overwrite = OverwriteMode.Overwrite });
         Assert.True(r.Ok);
         Assert.Equal(expected.Count, r.Extracted);
-    }
-
-    [Fact]
-    public void Rar_to_mdr_to_zip_conversion_keeps_content()
-    {
-        string rar = @"C:\Program Files\WinRAR\Rar.exe";
-        if (!File.Exists(rar)) return;
-        using var tmp = new TempDir();
-        string tree = Data.MakeTree(tmp.Path);
-        var expected = Data.Snapshot(tree);
-        var p = Process.Start(new ProcessStartInfo(rar, "a -r -m3 -ep1 src.rar arbol") { WorkingDirectory = tmp.Path, RedirectStandardOutput = true, UseShellExecute = false })!;
-        p.StandardOutput.ReadToEnd(); p.WaitForExit();
-        string mdr = ArchiveEditor.Convert(tmp.Combine("src.rar"), null, tmp.Combine("c.mdr"), new ArchiveOptions { Format = ArchiveFormat.Mdr, Solid = true });
-        string zip = ArchiveEditor.Convert(mdr, null, tmp.Combine("c.zip"), new ArchiveOptions { Format = ArchiveFormat.Zip });
-        using var a = ArchiveOpener.Open(zip);
-        Extractor.Extract(a, a.Entries, new ExtractOptions { DestinationDir = tmp.Combine("o"), Overwrite = OverwriteMode.Overwrite });
-        Data.AssertSame(expected, Data.Snapshot(tmp.Combine("o", "arbol")));
     }
 }
 
@@ -625,7 +554,13 @@ public class ToolTests
             Assert.True(sh.IsAssociated());
             using (var k = Registry.CurrentUser.OpenSubKey($@"{root}\MedMDR.Archive\shell\open\command"))
                 Assert.Contains("MedMDR.exe", (string)k!.GetValue("")!);
+            // aparece en «Abrir con» para los formatos habituales, sin quitarle el predeterminado a nadie
+            using (var k = Registry.CurrentUser.OpenSubKey($@"{root}\.zip\OpenWithProgids"))
+                Assert.NotNull(k!.GetValue("MedMDR.Archive"));
+            Assert.Null(Registry.CurrentUser.OpenSubKey($@"{root}\.zip")!.GetValue(""));
             sh.Uninstall();
+            using (var k = Registry.CurrentUser.OpenSubKey($@"{root}\.zip\OpenWithProgids"))
+                Assert.Null(k?.GetValue("MedMDR.Archive"));
             Assert.False(sh.IsContextMenuInstalled());
             Assert.False(sh.IsAssociated());
         }

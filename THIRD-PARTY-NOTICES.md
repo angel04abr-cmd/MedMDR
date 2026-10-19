@@ -31,8 +31,6 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTI
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-## WinRAR
+## Marcas
 
-MedMDR **no contiene código, imágenes, iconos ni textos de WinRAR** ni de RARLAB. Observar qué funciones ofrece WinRAR
-sirvió solo para decidir qué funciones tendría MedMDR. MedMDR lee archivos RAR con SharpCompress y
-**no crea** archivos RAR. «WinRAR» y «RAR» son marcas de sus propietarios.
+«RAR» y «WinRAR» son marcas de sus propietarios; MedMDR no tiene ninguna relación con ellos. MedMDR no contiene código, imágenes, iconos ni textos de ningún otro gestor de archivos. Solo **lee** archivos RAR (con SharpCompress) y **no crea** archivos RAR.

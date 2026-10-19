@@ -59,6 +59,17 @@ public class MigrationTests
         finally { Registry.CurrentUser.DeleteSubKeyTree(root, false); }
     }
 
+    [Fact]
+    public void A_token_saved_under_the_old_name_is_still_readable()
+    {
+        // lo que guardaba la versión anterior (cuando el programa se llamaba Medrar)
+        string old = Convert.ToBase64String(System.Security.Cryptography.ProtectedData.Protect(
+            System.Text.Encoding.UTF8.GetBytes("github_pat_viejo"), System.Text.Encoding.UTF8.GetBytes("Medrar/update-token/v1"),
+            System.Security.Cryptography.DataProtectionScope.CurrentUser));
+        Assert.Equal("github_pat_viejo", TokenProtector.Unprotect(old));
+        Assert.Equal("github_pat_nuevo", TokenProtector.Unprotect(TokenProtector.Protect("github_pat_nuevo")));
+    }
+
     private static string ReleaseWith(params string[] assetNames) =>
         JsonSerializer.Serialize(new
         {

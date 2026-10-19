@@ -7,6 +7,6 @@ internal static class AppInfo
 {
     public const string Name = "MedMDR";
     public const string Author = "angel04abr-cmd";
-    public const string RepoUrl = "https://github.com/angel04abr-cmd/Medrar";
+    public const string RepoUrl = "https://github.com/angel04abr-cmd/MedMDR";
     public static string Version => Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? "";
 }

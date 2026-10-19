@@ -27,7 +27,7 @@ public sealed class UpdateException : MedMDRException
 /// </summary>
 public sealed class UpdateService : IDisposable
 {
-    public const string DefaultRepo = "angel04abr-cmd/Medrar";
+    public const string DefaultRepo = "angel04abr-cmd/MedMDR";
     public const string DefaultApi = "https://api.github.com";
     public const string SumsName = "SHA256SUMS.txt";
     private const int MaxRedirects = 5;
@@ -50,13 +50,13 @@ public sealed class UpdateService : IDisposable
 
     /// <summary>
     /// Crea el servicio con la configuración habitual. Para las pruebas se puede redirigir a un servidor local con
-    /// MEDRAR_UPDATE_API (solo se aceptan direcciones de este mismo equipo), MEDRAR_UPDATE_REPO y MEDRAR_UPDATE_TOKEN.
+    /// MEDMDR_UPDATE_API (solo se aceptan direcciones de este mismo equipo), MEDMDR_UPDATE_REPO y MEDMDR_UPDATE_TOKEN.
     /// </summary>
     public static UpdateService FromEnvironment(string? token)
     {
-        string? envToken = Environment.GetEnvironmentVariable("MEDRAR_UPDATE_TOKEN");
+        string? envToken = Environment.GetEnvironmentVariable("MEDMDR_UPDATE_TOKEN");
         return new UpdateService(string.IsNullOrWhiteSpace(envToken) ? token : envToken,
-            LocalOnlyApi(Environment.GetEnvironmentVariable("MEDRAR_UPDATE_API")), Environment.GetEnvironmentVariable("MEDRAR_UPDATE_REPO"));
+            LocalOnlyApi(Environment.GetEnvironmentVariable("MEDMDR_UPDATE_API")), Environment.GetEnvironmentVariable("MEDMDR_UPDATE_REPO"));
     }
 
     /// <summary>Una dirección de API alternativa solo vale si es de este mismo equipo; si no, se descarta (usa la de GitHub).</summary>
@@ -235,7 +235,8 @@ public sealed class UpdateService : IDisposable
 [SupportedOSPlatform("windows")]
 public static class TokenProtector
 {
-    private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("Medrar/update-token/v1");
+    private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("MedMDR/update-token/v1");
+    private static readonly byte[] LegacyEntropy = Encoding.UTF8.GetBytes("Medrar/update-token/v1");   // tokens guardados cuando el programa se llamaba Medrar
 
     public static string Protect(string token)
     {
@@ -246,8 +247,12 @@ public static class TokenProtector
     public static string Unprotect(string? stored)
     {
         if (string.IsNullOrEmpty(stored)) return "";
-        try { return Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(stored), Entropy, DataProtectionScope.CurrentUser)); }
-        catch (Exception ex) when (ex is CryptographicException or FormatException) { return ""; }   // otro usuario/equipo: se ignora
+        foreach (var entropy in new[] { Entropy, LegacyEntropy })
+        {
+            try { return Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(stored), entropy, DataProtectionScope.CurrentUser)); }
+            catch (Exception ex) when (ex is CryptographicException or FormatException) { /* se prueba la otra clave */ }
+        }
+        return "";   // otro usuario/equipo: se ignora
     }
 }
 

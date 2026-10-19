@@ -7,7 +7,7 @@ using SharpCompress.Compressors.LZMA;
 namespace MedMDR.Core;
 
 /// <summary>
-/// Escritor de .7z con contraseña (AES-256 en el formato «7zAES» de 7-Zip), que es el que abren 7-Zip, WinRAR y demás.
+/// Escritor de .7z con contraseña (AES-256 en el formato «7zAES» de 7-Zip), que es el que abren 7-Zip y otros programas.
 /// Un solo bloque sólido: todos los ficheros → LZMA → AES-256-CBC. Con «nombres cifrados» la lista de ficheros también
 /// va comprimida y cifrada (cabecera codificada), y sin la contraseña no se puede ni listar el contenido.
 /// </summary>

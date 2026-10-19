@@ -6,7 +6,7 @@ using System.Text;
 namespace MedMDR.Core;
 
 /// <summary>
-/// Escritor de ZIP con contraseña: cifrado AES-256 en el formato de WinZip (AE-2), el que abren 7-Zip, WinRAR,
+/// Escritor de ZIP con contraseña: cifrado AES-256 en el formato de WinZip (AE-2), el que abren 7-Zip,
 /// WinZip y casi todos los programas modernos. El ZIP normal sin contraseña lo escribe .NET.
 /// </summary>
 /// <remarks>

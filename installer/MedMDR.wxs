@@ -99,6 +99,7 @@
       <Component Id="Avisos" Guid="*">
         <File Source="$(Source)\THIRD-PARTY-NOTICES.md" KeyPath="yes" />
       </Component>
+      <ComponentRef Id="RegistroAplicacion" />
     </ComponentGroup>
 
     <Component Id="AccesoEscritorio" Directory="INSTALLFOLDER" Guid="*">
@@ -107,9 +108,16 @@
       <RegistryValue Root="HKLM" Key="Software\MedMDR" Name="Escritorio" Type="integer" Value="1" KeyPath="yes" />
     </Component>
 
-    <!-- Asociación de .mdr y sus órdenes en el menú contextual del archivo -->
+    <!-- Asociación de .mdr: solo si se marca la opción «Asociar los archivos .mdr» -->
     <Component Id="AsociacionMdr" Directory="INSTALLFOLDER" Guid="*">
       <RegistryValue Root="HKLM" Key="Software\Classes\.mdr" Type="string" Value="MedMDR.Archive" KeyPath="yes" />
+    </Component>
+
+    <!--
+      MedMDR como programa disponible (siempre): aparece en «Abrir con» y en Configuración de Windows > Aplicaciones predeterminadas
+      para .mdr, ZIP, 7Z, RAR, TAR, GZ…, sin quitarle el programa predeterminado a nadie (eso lo elige el usuario).
+    -->
+    <Component Id="RegistroAplicacion" Directory="INSTALLFOLDER" Guid="*">
       <RegistryKey Root="HKLM" Key="Software\Classes\MedMDR.Archive">
         <RegistryValue Type="string" Value="Archivo MedMDR" />
         <RegistryValue Key="DefaultIcon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
@@ -126,6 +134,55 @@
         <RegistryValue Key="shell\test" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
         <RegistryValue Key="shell\test\command" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot; --test &quot;%1&quot;" />
       </RegistryKey>
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\DefaultIcon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities" Name="ApplicationName" Type="string" Value="MedMDR" KeyPath="yes" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities" Name="ApplicationDescription" Type="string" Value="Gestor de archivos comprimidos" />
+      <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="MedMDR" Type="string" Value="Software\MedMDR\Capabilities" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".mdr" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.mdr\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".mdr" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".zip" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.zip\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".zip" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".7z" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.7z\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".7z" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".rar" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.rar\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".rar" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".tar" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.tar\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".tar" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".gz" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.gz\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".gz" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".tgz" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.tgz\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".tgz" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".bz2" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.bz2\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".bz2" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".xz" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.xz\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".xz" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".lz" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.lz\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".lz" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".zst" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.zst\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".zst" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".cab" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.cab\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".cab" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".iso" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.iso\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".iso" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".jar" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.jar\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".jar" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\MedMDR\Capabilities\FileAssociations" Name=".001" Type="string" Value="MedMDR.Archive" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\.001\OpenWithProgids" Name="MedMDR.Archive" Type="string" Value="" />
+      <RegistryValue Root="HKLM" Key="Software\Classes\Applications\MedMDR.exe\SupportedTypes" Name=".001" Type="string" Value="" />
     </Component>
 
     <!-- «Añadir a un archivo con MedMDR» en el menú del botón derecho -->

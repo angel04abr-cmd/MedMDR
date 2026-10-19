@@ -39,6 +39,11 @@ jobs:
           }
           if (-not (Test-Path -LiteralPath 'HKLM:\Software\Classes\*\shell\MedMDR.Add\command')) { $fallos += 'falta la clave del menú de ficheros' }
           if ((Get-ItemProperty HKLM:\Software\MedMDR).Installer -ne 'msi') { $fallos += 'falta la marca Installer=msi' }
+          # Aparece en «Abrir con» y en Aplicaciones predeterminadas (sin quitarle el predeterminado a nadie)
+          if ((Get-ItemProperty HKLM:\Software\RegisteredApplications).MedMDR -ne 'Software\MedMDR\Capabilities') { $fallos += 'falta el registro en RegisteredApplications' }
+          if ((Get-ItemProperty 'HKLM:\Software\MedMDR\Capabilities\FileAssociations').'.zip' -ne 'MedMDR.Archive') { $fallos += 'falta .zip en las capacidades' }
+          if ($null -eq (Get-ItemProperty 'HKLM:\Software\Classes\.rar\OpenWithProgids' -ErrorAction SilentlyContinue).'MedMDR.Archive') { $fallos += 'falta .rar en Abrir con' }
+          if ((Get-ItemProperty 'HKLM:\Software\Classes\.zip' -ErrorAction SilentlyContinue).'(default)' -eq 'MedMDR.Archive') { $fallos += 'MedMDR no debe quitarle .zip a nadie' }
           # El acceso del menú Inicio debe apuntar al .exe (si no, Windows no ofrece «Desinstalar»)
           $lnk = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\MedMDR.lnk"
           if (-not (Test-Path $lnk)) { $fallos += 'falta el acceso del menú Inicio' }
@@ -81,7 +86,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download v1.5.0 --repo angel04abr-cmd/Medrar --pattern 'Medrar-1.5.0-x64.msi' --dir $env:RUNNER_TEMP
+          gh release download v1.5.0 --repo angel04abr-cmd/MedMDR --pattern 'Medrar-1.5.0-x64.msi' --dir $env:RUNNER_TEMP
           $old = Join-Path $env:RUNNER_TEMP 'Medrar-1.5.0-x64.msi'
           $p = Start-Process msiexec -ArgumentList '/i', "`"$old`"", 'ADDLOCAL=ALL', '/qn' -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "la 1.5.0 no se instaló ($($p.ExitCode))" }

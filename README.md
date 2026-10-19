@@ -82,7 +82,7 @@ comprimido para abrirlo como si fuera una carpeta. `Retroceso` sube un nivel. Pu
 **Extraer.** Abre o selecciona el archivo y pulsa **Extraer en** (`Alt+E`). *Órdenes → Extraer aquí* extrae junto al archivo sin hacer preguntas.
 También puedes **arrastrar ficheros desde dentro del archivo** a una carpeta del Explorador.
 
-**Contraseña.** En «Añadir» → *Establecer contraseña*. Vale para **.mdr**, **ZIP** y **7Z** (AES-256; ZIP y 7Z los abren 7-Zip, WinRAR y demás).
+**Contraseña.** En «Añadir» → *Establecer contraseña*. Vale para **.mdr**, **ZIP** y **7Z** (AES-256; ZIP y 7Z los abren 7-Zip y otros programas habituales).
 En .mdr y 7Z puedes marcar «Cifrar también los nombres» para que ni siquiera se vea la lista de ficheros; el ZIP no puede ocultar
 los nombres. MedMDR **no guarda contraseñas**. Al abrir un archivo cifrado, MedMDR pide la contraseña y comprueba que sea correcta.
 
@@ -178,7 +178,7 @@ mdr -h                                                      ayuda completa
   archivos grandes necesita espacio libre en disco. RAR y autoextraíbles son de solo lectura.
 - **RAR con contraseña:** se abren los de cabeceras cifradas (MedMDR pide la clave al abrir) y los de solo contenido cifrado
   (se ve el listado y se pide la clave al extraer). En RAR cifrados no se puede comparar la suma de control normal, así que un
-  error solo se detecta si falla el descifrado o la descompresión. Probado con RAR 5 creados por WinRAR 7.23; RAR 4 cifrados, no.
+  error solo se detecta si falla el descifrado o la descompresión. Probado a mano durante el desarrollo con archivos RAR 5 (con y sin contraseña); RAR 4 cifrados, no.
 - **Actualizaciones:** solo la copia instalada con el `.msi` se actualiza sola. El `.msi` no está firmado, así que la garantía de que
   es el correcto es la suma SHA-256 publicada en la misma release de GitHub: protege de descargas dañadas o alteradas por el camino,
   pero **no** de alguien que controle el propio repositorio.
@@ -189,7 +189,7 @@ mdr -h                                                      ayuda completa
   dentro de archivos), configuración, órdenes del menú de Windows (`--add`, `--extract-here`, `--extract-to`, `--test`) y la preparación
   del arrastre hacia fuera. **No se probó a mano con el ratón**: el arrastre real al Explorador, los menús desplegables y el
   aviso de actualización con una release real (sí se probó la lógica del actualizador con pruebas automáticas y un servidor de prueba).
-  Los autoextraíbles se probaron ejecutándolos (ligero y completo, con ZIP, 7Z, .mdr y contraseña) y 7Z/ZIP con contraseña se abrieron con WinRAR.
+  Los autoextraíbles se probaron ejecutándolos (ligero y completo, con ZIP, 7Z, .mdr y contraseña) y 7Z/ZIP con contraseña se abrieron con 7-Zip.
 
 ## Qué guarda y qué envía
 
@@ -222,8 +222,9 @@ src/MedMDR.App      La aplicación de escritorio (WPF, tema Fluent, todos los ic
 src/MedMDR.Cli      mdr.exe, línea de comandos
 src/MedMDR.Sfx      Módulo autoextraíble
 installer/          Instalador MSI (WiX Toolset 6)
-tests/MedMDR.Tests  147 pruebas automáticas del motor y del actualizador
+tests/MedMDR.Tests  150 pruebas automáticas del motor, del actualizador y de la migración
 docs/FORMATO-MDR.md Especificación del formato .mdr
+docs/DESARROLLO.md  Guía para seguir desarrollando (código, pruebas, publicación)
 ```
 
 ### Compilar y probar
@@ -237,8 +238,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip -Installer   prueb
 dotnet test tests\MedMDR.Tests                                solo las pruebas
 ```
 
-Algunas pruebas (leer RAR) necesitan WinRAR instalado para crear los RAR de prueba; si no está, esas pruebas **terminan sin
-comprobar nada** (no se marcan como omitidas).
+**La lectura de RAR no tiene pruebas automáticas:** no se incluye ningún fichero RAR ni se usa ningún programa RAR en las pruebas; esa parte la hace la biblioteca SharpCompress y solo se comprobó a mano.
 
 ### Publicar una versión nueva
 
