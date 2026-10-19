@@ -14,7 +14,7 @@ internal sealed class AddRequest
 /// <summary>«Añadir al archivo»: nombre, formato, método, volúmenes, contraseña, recuperación, comentario...</summary>
 internal sealed class AddDialog : DialogBase
 {
-    private static readonly string[] Levels = { "Almacenar (sin comprimir)", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor (más lento)" };
+    private static readonly string[] Levels = { "Almacenar (sin comprimir)", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor (más lento)", "Ultra (solo .mdr, muy lento)" };
     private static readonly string[] Dicts = { "Automático", "128 KB", "512 KB", "1 MB", "4 MB", "16 MB" };
     private static readonly int[] DictKb = { 0, 128, 512, 1024, 4096, 16384 };
     private static readonly string[] Modes = { "Añadir y reemplazar ficheros", "Añadir y actualizar ficheros", "Solo actualizar los ya existentes", "Sincronizar el contenido" };
@@ -113,7 +113,7 @@ internal sealed class AddDialog : DialogBase
 
         // valores por defecto
         string folder = string.IsNullOrWhiteSpace(settings.DefaultArchiveFolder) ? defaultFolder : settings.DefaultArchiveFolder;
-        _level.SelectedIndex = Math.Clamp(settings.DefaultLevel, 0, 5);
+        _level.SelectedIndex = Math.Clamp(settings.DefaultLevel, 0, 6);
         _solid.Checked = settings.DefaultSolid;
         _test.Checked = settings.DefaultTestAfter;
         if (settings.DefaultRecoveryPercent > 0) { _rec.Checked = true; _recPct.Value = Math.Clamp(settings.DefaultRecoveryPercent, 1, 50); }
@@ -253,7 +253,7 @@ internal sealed class AddDialog : DialogBase
     private void ApplyOptions(ArchiveOptions o, bool keepName = true)
     {
         SetFormat(o.Format);
-        _level.SelectedIndex = Math.Clamp(o.Level, 0, 5);
+        _level.SelectedIndex = Math.Clamp(o.Level, 0, 6);
         int di = Array.IndexOf(DictKb, o.DictionaryKb); _dict.SelectedIndex = di < 0 ? 0 : di;
         _deflate.Checked = o.UseDeflate; _solid.Checked = o.Solid;
         _rec.Checked = o.RecoveryPercent > 0; if (o.RecoveryPercent > 0) _recPct.Value = Math.Clamp(o.RecoveryPercent, 1, 50);

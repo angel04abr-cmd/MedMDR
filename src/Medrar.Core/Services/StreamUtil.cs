@@ -208,11 +208,21 @@ public static class StreamUtil
 /// <summary>Compresión: Deflate (nativo de .NET) y Brotli con calidad y ventana ajustables.</summary>
 internal static class Codec
 {
-    public const byte Store = 0, Deflate = 1, Brotli = 2;
+    public const byte Store = 0, Deflate = 1, Brotli = 2, Lzma = 3;
+    /// <summary>Nivel «Ultra» (solo .mdr): Brotli calidad 11 o LZMA.</summary>
+    public const int UltraLevel = 6;
 
-    public static string MethodName(byte m) => m switch { Store => "Almacenado", Deflate => "Deflate", Brotli => "Brotli", _ => "?" };
+    public static string MethodName(byte m) => m switch { Store => "Almacenado", Deflate => "Deflate", Brotli => "Brotli", Lzma => "LZMA", _ => "?" };
 
-    public static int BrotliQuality(int level) => level switch { <= 1 => 1, 2 => 3, 3 => 5, 4 => 7, _ => 9 };
+    public static int BrotliQuality(int level) => level switch { <= 1 => 1, 2 => 3, 3 => 5, 4 => 7, 5 => 9, _ => 11 };
+
+    /// <summary>Diccionario de LZMA: el pedido, o 16 MB, sin pasar del tamaño de los datos (cada MB de diccionario cuesta ~10 MB de memoria al comprimir).</summary>
+    public static int LzmaDictionary(int dictionaryKb, long sizeHint)
+    {
+        long want = dictionaryKb > 0 ? dictionaryKb * 1024L : 16L << 20;
+        if (sizeHint > 0) want = Math.Min(want, Ultra.NextPow2(sizeHint));
+        return (int)Math.Clamp(want, 1 << 16, 64 << 20);
+    }
 
     public static int WindowBits(int dictionaryKb, int level)
     {
@@ -221,7 +231,7 @@ internal static class Codec
         return Math.Clamp(bits, 16, 24);
     }
 
-    public static Stream CreateCompressor(byte method, Stream dest, int level, int dictionaryKb)
+    public static Stream CreateCompressor(byte method, Stream dest, int level, int dictionaryKb, long sizeHint = -1)
     {
         switch (method)
         {
@@ -230,6 +240,8 @@ internal static class Codec
                 return new DeflateStream(dest, new ZLibCompressionOptions { CompressionLevel = Math.Clamp(level * 2 - 1, 1, 9) }, leaveOpen: true);
             case Brotli:
                 return new BrotliEncoderStream(dest, BrotliQuality(level), WindowBits(dictionaryKb, level));
+            case Lzma:
+                return new LzmaEncodeStream(dest, LzmaDictionary(dictionaryKb, sizeHint));
             default: throw new UnsupportedFormatException("Método de compresión desconocido.");
         }
     }
@@ -239,6 +251,7 @@ internal static class Codec
         Store => source,
         Deflate => new DeflateStream(source, CompressionMode.Decompress, leaveOpen: true),
         Brotli => new BrotliStream(source, CompressionMode.Decompress, leaveOpen: true),
+        Lzma => new LzmaDecodeStream(source),
         _ => throw new UnsupportedFormatException("Método de compresión desconocido.")
     };
 }

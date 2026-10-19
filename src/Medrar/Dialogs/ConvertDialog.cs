@@ -7,7 +7,7 @@ internal sealed class ConvertDialog : DialogBase
 {
     private readonly ListBox _files = new() { Width = 520, Height = 110, SelectionMode = SelectionMode.MultiExtended, HorizontalScrollbar = true };
     private readonly ComboBox _format = UI.Combo(new[] { "Medrar (.mdr)", "ZIP (.zip)", "7Z (.7z)", "TAR.GZ (.tar.gz)" }, 0, 200);
-    private readonly ComboBox _level = UI.Combo(new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor" }, 3, 200);
+    private readonly ComboBox _level = UI.Combo(new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor", "Ultra (solo .mdr, muy lento)" }, 3, 230);
     private readonly CheckBox _solid = UI.Check("Crear archivos sólidos");
     private readonly CheckBox _rec = UI.Check("Añadir registro de recuperación (5 %; en .mdr dentro, en los demás en un fichero .mdrrec)");
     private readonly CheckBox _delete = UI.Check("Eliminar los archivos originales al terminar");

@@ -32,7 +32,7 @@ Un autoextraíble es un `.exe` con el archivo pegado detrás; se localiza con el
 | 4 | CRC32 del JSON |
 
 Campos del JSON: `V` (versión, 1), `App`, `Created` (ticks UTC de .NET), `Solid` (bool), `Encrypted`, `EncryptedNames`,
-`Locked`, `Method` (0 = almacenado, 1 = Deflate, 2 = Brotli), y si hay contraseña: `Salt` (Base64, 16 bytes), `Iter`
+`Locked`, `Method` (0 = almacenado, 1 = Deflate, 2 = Brotli, 3 = LZMA), y si hay contraseña: `Salt` (Base64, 16 bytes), `Iter`
 (iteraciones PBKDF2), `Check` (Base64, 32 bytes).
 
 Los datos empiezan justo después de la cabecera: `8 + 4 + N + 4`.
@@ -56,6 +56,10 @@ Los datos empiezan justo después de la cabecera: `8 + 4 + N + 4`.
 - **Sólido** (`Solid` = true): los ficheros se concatenan y se comprimen como un solo flujo con el método de la cabecera.
   `O` es el desplazamiento del fichero dentro del flujo **descomprimido**.
 - Brotli con ventana de hasta 2²⁴; Deflate en bruto (RFC 1951, sin cabecera zlib).
+- **LZMA (método 3, nivel «Ultra»):** el flujo empieza con 5 bytes de propiedades LZMA (byte de lc/lp/pb + diccionario de 32 bits
+  little-endian, como en el formato .lzma/7z) y sigue el flujo LZMA, que termina con su marca de fin (no se guarda el tamaño).
+  Un archivo puede mezclar métodos: en no sólido cada entrada lleva el suyo (`M`); en sólido todo el bloque usa el de la cabecera.
+  Las versiones de Medrar anteriores a la 1.4 no entienden el método 3 y lo dicen con un error («método de compresión desconocido»).
 - Con contraseña, todo el flujo de datos está cifrado con el esquema anterior; las posiciones `O` se refieren al flujo
   de datos ya descifrado (antes de añadir las etiquetas).
 

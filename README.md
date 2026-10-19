@@ -89,6 +89,20 @@ los nombres. Medrar **no guarda contraseñas**. Al abrir un archivo cifrado, Med
 **Bloquear.** *Órdenes → Bloquear / desbloquear*: impide modificar el archivo desde Medrar (en .mdr con una marca interna;
 en los demás formatos con el atributo de solo lectura del fichero).
 
+**Nivel Ultra (solo .mdr).** Es el nivel 6 de compresión (`-m6` en la consola). Prueba **Brotli con calidad 11** y **LZMA** sobre tus datos y usa
+el que mejor comprima (en modo sólido, para todo el bloque; si no, fichero a fichero). Es **mucho más lento** que el resto de niveles
+(Brotli 11 comprime texto a ~0,35 MB/s; con programas gana LZMA, que va a ~1,4 MB/s) y al extraer no es más lento. Medido en este
+equipo con la consola (`mdr a -m5 -s` frente a `mdr a -m6 -s`, tras extraer y comparar cada fichero):
+
+| Datos | Nivel 5 | Ultra |
+|---|---|---|
+| Texto y código (27 MB) | 5,6 % del original, en 7 s | 4,9 % (Brotli 11), en 77 s |
+| Programas y DLL (30 MB) | 37,9 %, en 30 s | 33,3 % (LZMA), en 21 s |
+| Imágenes, PDF, instaladores (ya comprimidos) | ~95,0 % | ~94,6 % — casi no hay nada que ganar (medido con las bibliotecas, no con la consola) |
+
+No hay milagros: lo que ya viene comprimido (JPG, MP4, ZIP…) no se puede reducir de forma apreciable sin perder datos. Los archivos
+con nivel Ultra con LZMA **no los abren versiones de Medrar anteriores a la 1.4**.
+
 **Volúmenes.** «Dividir en volúmenes» parte el archivo en `.001`, `.002`… Abre el `.001` y Medrar los une solo.
 
 **Autoextraíbles.** «Crear archivo autoextraíble» genera un `.exe` que se abre con doble clic, para **cualquier formato**.
@@ -122,6 +136,7 @@ Un autoextraíble es de solo lectura en Medrar; *Herramientas → Quitar el mód
 
 ```
 mdr a -m4 -s -rr5 -hpMiClave datos.mdr carpeta\      crear .mdr (nivel 4, sólido, recuperación 5 %, contraseña y nombres cifrados)
+mdr a -m6 -s datos.mdr carpeta\                     nivel Ultra: el que más comprime (muy lento)
 mdr a -fzip -pMiClave datos.zip carpeta\             ZIP con contraseña AES-256
 mdr a -f7z -hpMiClave datos.7z carpeta\              7Z con contraseña y nombres cifrados
 mdr a -sfxfull -fzip datos carpeta\                  autoextraíble que incluye .NET
@@ -199,7 +214,7 @@ src/Medrar          La aplicación de escritorio (Windows Forms, todos los icono
 src/Medrar.Cli      mdr.exe, línea de comandos
 src/Medrar.Sfx      Módulo autoextraíble
 installer/          Instalador MSI (WiX Toolset 6)
-tests/Medrar.Tests  127 pruebas automáticas del motor y del actualizador
+tests/Medrar.Tests  143 pruebas automáticas del motor y del actualizador
 docs/FORMATO-MDR.md Especificación del formato .mdr
 ```
 

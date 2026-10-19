@@ -57,12 +57,16 @@ public sealed class SourceItem
     public string? FullPath { get; init; }
 }
 
+public enum UltraMethod { Auto = 0, Brotli = 1, Lzma = 2 }
+
 public sealed class ArchiveOptions
 {
     public ArchiveFormat Format { get; set; } = ArchiveFormat.Mdr;
-    /// <summary>0 = almacenar, 1 = más rápido ... 5 = el mejor.</summary>
+    /// <summary>0 = almacenar, 1 = más rápido ... 5 = el mejor. 6 = Ultra (solo .mdr: Brotli 11 o LZMA, el que mejor comprima; muy lento).</summary>
     public int Level { get; set; } = 3;
-    /// <summary>Tamaño del diccionario en KB (solo .mdr/Brotli). 0 = automático según el nivel.</summary>
+    /// <summary>En el nivel Ultra: Auto elige el mejor método; Brotli o Lzma lo fuerzan.</summary>
+    public UltraMethod UltraMethod { get; set; } = UltraMethod.Auto;
+    /// <summary>Tamaño del diccionario en KB (solo .mdr/Brotli/LZMA). 0 = automático según el nivel.</summary>
     public int DictionaryKb { get; set; }
     public bool UseDeflate { get; set; }
     public bool Solid { get; set; }

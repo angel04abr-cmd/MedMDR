@@ -15,7 +15,7 @@
     <AssemblyName>Medrar</AssemblyName>
     <RootNamespace>Medrar.App</RootNamespace>
     <ApplicationIcon>Resources/medrar.ico</ApplicationIcon>
-    <Version>1.3.1</Version>
+    <Version>1.4.0</Version>
     <NoWarn>$(NoWarn);WFO5001;WFO1000</NoWarn>
   </PropertyGroup>
 

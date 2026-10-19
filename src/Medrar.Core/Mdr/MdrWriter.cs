@@ -13,6 +13,7 @@ internal static class MdrWriter
     public static void Write(Stream output, IReadOnlyList<SourceItem> items, ArchiveOptions o, ProgressReporter progress)
     {
         long start = output.Position;
+        bool ultra = o.Level >= Codec.UltraLevel && !o.UseDeflate;      // nivel Ultra: Brotli 11 o LZMA, el que mejor comprima
         bool encrypted = !string.IsNullOrEmpty(o.Password);
         byte[]? key = null;
         var header = new MdrHeader
@@ -24,6 +25,13 @@ internal static class MdrWriter
             Locked = o.Lock,
             Method = o.Level <= 0 ? (int)Codec.Store : (o.UseDeflate ? (int)Codec.Deflate : (int)Codec.Brotli),
         };
+        if (ultra && o.Solid)
+        {
+            // En modo sólido todo el bloque usa un solo método: se decide ahora, antes de escribir la cabecera.
+            progress.Begin("Analizando los datos para elegir el mejor método…");
+            var sample = Ultra.SampleOfSet(items, Ultra.SolidSampleBytes, i => Glob.MatchesAny(i.EntryPath, o.StorePatterns));
+            header.Method = Ultra.Choose(sample, o.UltraMethod);
+        }
         if (encrypted)
         {
             var salt = MdrCrypto.NewSalt();
@@ -52,7 +60,7 @@ internal static class MdrWriter
 
         if (o.Solid)
         {
-            using var comp = Codec.CreateCompressor((byte)header.Method, counting, o.Level, o.DictionaryKb);
+            using var comp = Codec.CreateCompressor((byte)header.Method, counting, o.Level, o.DictionaryKb, progress.Total);
             long solidPos = 0;
             foreach (var it in items)
             {
@@ -83,9 +91,10 @@ internal static class MdrWriter
                 var e = FileEntry(it);
                 byte method = (byte)header.Method;
                 if (it.Size == 0 || Glob.MatchesAny(it.EntryPath, o.StorePatterns)) method = Codec.Store;
+                else if (ultra && method != Codec.Store) method = Ultra.Choose(Ultra.SampleOfFile(it, Ultra.FileSampleBytes), o.UltraMethod);
                 e.M = method;
                 e.O = counting.Count;
-                var comp = Codec.CreateCompressor(method, counting, o.Level, o.DictionaryKb);
+                var comp = Codec.CreateCompressor(method, counting, o.Level, o.DictionaryKb, it.Size);
                 var crcOut = new CrcWriteStream(comp, progress);
                 using (var src = it.Open!()) StreamUtil.CopyTo(src, crcOut);
                 comp.Dispose();

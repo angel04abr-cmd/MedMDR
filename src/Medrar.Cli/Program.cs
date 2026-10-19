@@ -22,7 +22,7 @@ static class Cli
           i   Información del archivo               b   Prueba de velocidad
 
         Opciones:
-          -m0..-m5        Nivel de compresión (0 = almacenar, 5 = máximo)       -s     Modo sólido
+          -m0..-m6        Nivel de compresión (0 = almacenar, 5 = máximo, 6 = Ultra solo .mdr: Brotli 11 o LZMA, muy lento)   -s  Modo sólido
           -p<clave>       Contraseña                                            -hp<clave>  Contraseña y nombres cifrados
           -rr<N>          Registro de recuperación de N % (en .mdr va dentro; en los demás, en un fichero .mdrrec)                       -v<tam>     Volúmenes (ej. -v10m, -v700k)
           -sfx            Autoextraíble (necesita .NET 10)    -sfxfull  Autoextraíble que incluye .NET      -k  Bloquear

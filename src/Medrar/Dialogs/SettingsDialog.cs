@@ -16,7 +16,7 @@ internal sealed class SettingsDialog : DialogBase
     private readonly CheckBox _top = UI.Check("Mantener la ventana siempre visible");
     // Compresión
     private readonly ComboBox _format = UI.Combo(new[] { "Medrar (.mdr)", "ZIP", "7Z", "TAR.GZ", "TAR" }, 0, 180);
-    private readonly ComboBox _level = UI.Combo(new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor" }, 3, 180);
+    private readonly ComboBox _level = UI.Combo(new[] { "Almacenar", "Más rápido", "Rápido", "Normal", "Bueno", "El mejor", "Ultra (solo .mdr, muy lento)" }, 3, 220);
     private readonly CheckBox _solid = UI.Check("Crear archivos sólidos por defecto");
     private readonly CheckBox _testAfter = UI.Check("Verificar siempre al terminar de comprimir");
     private readonly NumericUpDown _rec = new() { Minimum = 0, Maximum = 50, Width = 60 };
@@ -51,7 +51,7 @@ internal sealed class SettingsDialog : DialogBase
         _history.Checked = s.KeepHistory; _btnText.Checked = s.ShowButtonText; _big.Checked = s.LargeIcons;
         _fullTitle.Checked = s.ShowFullPathInTitle; _comment.Checked = s.ShowArchiveComment; _top.Checked = s.AlwaysOnTop;
         _format.SelectedIndex = s.DefaultFormat switch { ArchiveFormat.Zip => 1, ArchiveFormat.SevenZip => 2, ArchiveFormat.TarGz => 3, ArchiveFormat.Tar => 4, _ => 0 };
-        _level.SelectedIndex = Math.Clamp(s.DefaultLevel, 0, 5); _solid.Checked = s.DefaultSolid; _testAfter.Checked = s.DefaultTestAfter; _rec.Value = Math.Clamp(s.DefaultRecoveryPercent, 0, 50);
+        _level.SelectedIndex = Math.Clamp(s.DefaultLevel, 0, 6); _solid.Checked = s.DefaultSolid; _testAfter.Checked = s.DefaultTestAfter; _rec.Value = Math.Clamp(s.DefaultRecoveryPercent, 0, 50);
         _arcFolder.Text = s.DefaultArchiveFolder; _extFolder.Text = s.DefaultExtractFolder; _startFolder.Text = s.StartupFolder;
         int fi = _font.Items.IndexOf(s.ViewerFontName); _font.SelectedIndex = fi < 0 ? Math.Max(0, _font.Items.IndexOf("Consolas")) : fi;
         _fontSize.Value = (decimal)Math.Clamp(s.ViewerFontSize, 6, 32); _wrap.Checked = s.ViewerWordWrap; _maxKb.Value = Math.Clamp(s.ViewerMaxKb, 16, 65536);
