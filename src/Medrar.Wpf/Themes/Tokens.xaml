@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <!-- Medidas del diseño (múltiplos de 4, como en Windows 11) -->
+    <CornerRadius x:Key="RadiusControl">4</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">8</CornerRadius>
+    <CornerRadius x:Key="RadiusRow">5</CornerRadius>
+    <Thickness x:Key="PadPage">12</Thickness>
+    <sys:Double x:Key="RowHeight">34</sys:Double>
+    <sys:Double x:Key="IconSize">20</sys:Double>
+    <sys:Double x:Key="CommandIconSize">22</sys:Double>
+
+    <!-- Tipografía: Segoe UI Variable (Windows 11) y, si no está, Segoe UI -->
+    <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <sys:Double x:Key="FontSizeBody">13</sys:Double>
+    <sys:Double x:Key="FontSizeCaption">12</sys:Double>
+</ResourceDictionary>

@@ -21,3 +21,6 @@ jobs:
       - name: Compilar todo
         shell: pwsh
         run: ./build.ps1
+
+      - name: Compilar la interfaz nueva (WPF, en desarrollo)
+        run: dotnet build src/Medrar.Wpf/Medrar.Wpf.csproj -c Release
