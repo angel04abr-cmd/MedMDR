@@ -40,7 +40,8 @@ public sealed class LaunchArgs
     public string? ShotsDir;                // solo pruebas: carpeta donde se guarda una captura de cada diálogo que se abra
     public string? Password;
     public bool AutoYes;                    // solo pruebas: responde «Sí/Aceptar» a las preguntas sin mostrarlas
-    public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto                // contraseña para abrir archivos cifrados (también sirve para las pruebas)                  // solo pruebas: abre un diálogo suelto para capturarlo
+    public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto
+    public bool Accept;                     // solo pruebas: tras la captura, cada diálogo se acepta con sus valores (en vez de cancelarse)
     public int SelectRow = -1;
 
     public static LaunchArgs Parse(string[] args)
@@ -56,6 +57,7 @@ public sealed class LaunchArgs
                 case "--auto": l.Auto = args[++i]; break;
                 case "--shots-dir": l.ShotsDir = args[++i]; break;
                 case "--yes": l.AutoYes = true; break;
+                case "--accept": l.Accept = true; break;
                 case "--text": l.AutoText = args[++i]; break;
                 case "--password": l.Password = args[++i]; break;
                 case "--dialog": l.Dialog = args[++i]; break;

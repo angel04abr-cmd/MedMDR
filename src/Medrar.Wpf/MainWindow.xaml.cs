@@ -50,7 +50,9 @@ public partial class MainWindow : Window
         _sessionPassword = App.Args.Password;
         BuildSidebar();
         if (path != null && File.Exists(path)) { LoadFolder(Path.GetDirectoryName(Path.GetFullPath(path))!); OpenArchive(Path.GetFullPath(path)); }
-        else LoadFolder(path != null && Directory.Exists(path) ? path : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+        else LoadFolder(path != null && Directory.Exists(path) ? path
+            : Directory.Exists(_settings.StartupFolder) ? _settings.StartupFolder : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+        ApplyWindowSettings();
         UpdateCommands();
     }
 
@@ -148,7 +150,7 @@ public partial class MainWindow : Window
             _folder = di.FullName;
             AddressBox.Text = _folder;
             Populate(items, di.Parent != null);
-            Title = $"{(di.Name.Length > 0 ? di.Name : _folder)} — {AppInfo.Name}";
+            Title = WindowTitle(_folder, di.Name.Length > 0 ? di.Name : _folder);
             SettingsStore.AddHistory(_settings, _folder);
             ShowComment(null);
         }
@@ -179,7 +181,7 @@ public partial class MainWindow : Window
         }
         AddressBox.Text = Path.Combine(_session!.Path, _inside.Replace('/', '\\'));
         Populate(dirs.Values.Concat(files), true);
-        Title = $"{Path.GetFileName(_session.Path)} — {AppInfo.Name}" + (Archive.IsEncrypted ? " 🔒" : "");
+        Title = WindowTitle(_session.Path, Path.GetFileName(_session.Path)).Replace(" — " + AppInfo.Name, (Archive.IsEncrypted ? " 🔒" : "") + " — " + AppInfo.Name);
     }
 
     private void ShowComment(string? text)
@@ -472,7 +474,7 @@ public partial class MainWindow : Window
         {
             if (InArchive) AddToCurrentArchive(paths);
             else if (paths.Length == 1 && File.Exists(paths[0]) && ArchiveOpener.LooksLikeArchive(paths[0])) OpenArchive(paths[0]);
-            else Msg.Info(this, "Crear un archivo nuevo a partir de los ficheros soltados llega en la Fase 3 (con el diálogo «Añadir»).\n\nAhora puedes soltar ficheros dentro de un archivo abierto para añadirlos, o soltar un archivo para abrirlo.");
+            else AddToNewArchive(paths);
         });
     }
 
@@ -508,6 +510,7 @@ public partial class MainWindow : Window
             var noArgs = new RoutedEventArgs();
             if (cmd.StartsWith("select:")) SelectRowForSnapshot(int.Parse(cmd[7..]));
             else if (cmd.StartsWith("add:")) AddToCurrentArchive(cmd[4..].Split('|'));
+            else if (cmd.StartsWith("new:")) AddToNewArchive(cmd[4..].Split('|'));
             else switch (cmd)
             {
                 case "open": ActivateSelected(); break;
@@ -516,6 +519,11 @@ public partial class MainWindow : Window
                 case "info": Command_Info(this, noArgs); break;
                 case "view": Command_View(this, noArgs); break;
                 case "extract-here": Command_ExtractHere(this, noArgs); break;
+                case "extract": Command_Extract(this, noArgs); break;
+                case "convert": Command_Convert(this, noArgs); break;
+                case "wizard": Command_Wizard(this, noArgs); break;
+                case "settings": Command_Settings(this, noArgs); break;
+                case "find": Command_Find(this, noArgs); break;
                 case "delete": Command_Delete(this, noArgs); break;
                 case "report": Command_Report(this, noArgs); break;
                 case "rename": Command_Rename(this, noArgs); break;

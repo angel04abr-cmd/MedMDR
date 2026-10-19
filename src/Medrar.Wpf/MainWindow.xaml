@@ -70,6 +70,11 @@
                     <MenuItem x:Name="ThemeLight" Header="Claro" IsCheckable="True" Tag="Light" Click="Theme_Click" />
                     <MenuItem x:Name="ThemeDark" Header="Oscuro" IsCheckable="True" Tag="Dark" Click="Theme_Click" />
                 </MenuItem>
+                <MenuItem Header="_Configuración…" Click="Command_Settings" />
+                <Separator />
+                <MenuItem Header="_Exportar la configuración…" Click="ExportSettings_Click" />
+                <MenuItem Header="_Importar la configuración…" Click="ImportSettings_Click" />
+                <MenuItem Header="_Restablecer la configuración…" Click="ResetSettings_Click" />
             </MenuItem>
             <MenuItem Header="Ay_uda">
                 <MenuItem Header="_Acerca de MedMDR…" Click="About_Click" />

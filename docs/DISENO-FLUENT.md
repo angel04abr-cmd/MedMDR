@@ -1,6 +1,6 @@
 # Interfaz nueva de Medrar (estilo Fluent, WPF)
 
-Estado: **Fases 1 y 2 hechas** (base, ventana principal con archivos y panel lateral). La aplicación completa sigue siendo `Medrar.exe`
+Estado: **Fases 1, 2 y 3 hechas** (base, ventana principal, panel lateral y todos los diálogos grandes). La aplicación completa sigue siendo `Medrar.exe`
 (Windows Forms, con el aspecto Fluent «fase 0» de la 1.5.0). El proyecto nuevo es `src/Medrar.Wpf` y comparte el motor
 (`Medrar.Core`) sin tocarlo.
 
@@ -11,7 +11,7 @@ Estado: **Fases 1 y 2 hechas** (base, ventana principal con archivos y panel lat
 | 0 | Mejoras Fluent en la ventana de Windows Forms (título, filas redondeadas, botones, menús, pestañas) | Hecha (1.5.0) |
 | 1 | Proyecto WPF con tema Fluent, medidas, iconos vectoriales propios y ventana principal que recorre carpetas | Hecha |
 | 2 | Abrir y editar archivos comprimidos, panel lateral (accesos, favoritos, recientes), diálogos básicos (mensaje, contraseña, texto, progreso, resultado, visor, sobrescritura) y órdenes: extraer, comprobar, ver, información, informe, eliminar, renombrar, comentario, proteger, bloquear, reparar, autoextraíble, añadir a un archivo abierto y soltar ficheros | Hecha |
-| 3 | Diálogos grandes: Añadir (crear archivos nuevos), Extraer con opciones, Configuración, Asistente, Convertir, Buscar | Pendiente |
+| 3 | Diálogos grandes: Añadir (crear archivos nuevos y añadir a uno abierto, con perfiles, contraseña, volúmenes, autoextraíble y recuperación), Extraer con opciones, Configuración (7 pestañas), Asistente, Convertir, Buscar | Hecha |
 | 4 | Comportamiento delicado: arrastrar ficheros fuera del archivo, menú contextual, asociación de archivos, actualizaciones | Pendiente |
 | 5 | Calidad: capturas a 100/150/200 %, teclado y lector de pantalla, contraste alto, rendimiento con 100 000 ficheros, instalador | Pendiente |
 
@@ -30,7 +30,10 @@ Estado: **Fases 1 y 2 hechas** (base, ventana principal con archivos y panel lat
   contextual y barra de estado. `MainWindow.Commands.cs`: las órdenes (portadas de la lógica de `Medrar.exe`, que usa el mismo motor).
 - `Services/ArchiveSession.cs`: archivo abierto + contraseña (se pide una vez). `Dialogs/`: `MessageWindow` (`Msg.*`), `TextPromptWindow`
   (texto y contraseña), `ProgressWindow`, `ResultWindow`, `ViewerWindow`, `OverwriteWindow`, `AboutWindow`.
-- Lo que sigue sin conectar (Fase 3): crear un archivo nuevo, Asistente, Convertir archivos, Buscar ficheros y Configuración.
+- Fase 3: `AddWindow` (+ `NewPasswordWindow`), `ExtractWindow`, `ConvertWindow`, `FindWindow`, `WizardWindow` y `SettingsWindow` en `Dialogs/`.
+  `MainWindow.Create.cs` crea o actualiza archivos (`CreateArchive`, igual que en `Medrar.exe`); `MainWindow.Settings.cs` aplica la
+  configuración (texto e iconos de la barra, siempre visible, título con ruta, carpeta de inicio) y exporta, importa o restablece.
+  Soltar ficheros en la ventana (fuera de un archivo) abre «Añadir» para crear uno nuevo.
 - **Nombre:** el programa se llama **MedMDR** (`AppInfo.Name`). Los nombres internos (proyecto, carpetas, repositorio, ficheros .exe/.msi)
   se cambiarán en la integración final (Fase 5), cuidando que las copias ya instaladas puedan actualizarse.
 
@@ -43,7 +46,10 @@ Medrar.Wpf.exe --dump-keys claves.txt                           lista los recurs
 
 Pruebas automáticas de órdenes (solo desarrollo):
 Medrar.Wpf.exe --snapshot f.png --auto select:2,open,test,info --shots-dir capturas [--password X] [--yes] [--text T] carpeta
-   --auto  órdenes separadas por comas: select:N, open, up, test, info, view, extract-here, delete, rename, add:ruta1|ruta2, protect, lock, repair, report
+   --auto  órdenes separadas por comas: select:N, open, up, test, info, view, extract, extract-here, delete, rename, add:ruta1|ruta2,
+           new:ruta1|ruta2, convert, find, wizard, settings, protect, lock, repair, report
+   --accept  tras la captura, cada diálogo se acepta con sus valores (en vez de cancelarse); en el asistente recorre los 3 pasos
+             (con --text ruta como origen); con --text, «Buscar» busca ese texto solo
    --shots-dir  guarda una captura de cada diálogo que se abra (y lo cierra)   --yes / --text  responden a las preguntas sin mostrarlas
 ```
 

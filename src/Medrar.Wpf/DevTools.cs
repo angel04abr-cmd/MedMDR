@@ -39,8 +39,8 @@ internal static class DevTools
 
     private static int _shotCounter;
 
-    /// <summary>Con --shots-dir, cada diálogo que se abre se fotografía a los 1,3 s y se cierra (devuelve el resultado «cancelar»).</summary>
-    public static void Hook(Window dialog)
+    /// <summary>Con --shots-dir, cada diálogo que se abre se fotografía a los 1,3 s y se cierra (devuelve «cancelar», o «aceptar» con --accept).</summary>
+    public static void Hook(Window dialog, Action? accept = null)
     {
         string? dir = App.Args.ShotsDir;
         if (dir == null) return;
@@ -53,14 +53,29 @@ internal static class DevTools
                 try
                 {
                     Directory.CreateDirectory(dir);
-                    string name = new string(dialog.Title.Where(char.IsLetterOrDigit).ToArray());
-                    Save(dialog, Path.Combine(dir, $"{++_shotCounter:00}-{dialog.GetType().Name}-{name}.png"));
+                    Capture(dialog);
                 }
                 catch (Exception ex) { ErrorLog.Write(ex); }
+                if (App.Args.Accept && accept != null)
+                {
+                    try { accept(); } catch (Exception ex) { ErrorLog.Write(ex); }
+                    if (!dialog.IsVisible) return;
+                }
                 dialog.Close();
             };
             t.Start();
         };
+    }
+
+    /// <summary>Solo pruebas: guarda una captura del diálogo en la carpeta de --shots-dir (con una etiqueta opcional en el nombre).</summary>
+    public static void Capture(Window dialog, string tag = "")
+    {
+        string? dir = App.Args.ShotsDir;
+        if (dir == null) return;
+        Directory.CreateDirectory(dir);
+        dialog.Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
+        string name = new string(dialog.Title.Where(char.IsLetterOrDigit).ToArray());
+        Save(dialog, Path.Combine(dir, $"{++_shotCounter:00}-{dialog.GetType().Name}-{name}{tag}.png"));
     }
 
     /// <summary>Crea un diálogo suelto (con datos de ejemplo) para poder capturarlo con --dialog.</summary>

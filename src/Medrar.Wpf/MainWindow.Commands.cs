@@ -63,9 +63,6 @@ public partial class MainWindow
         }
     }
 
-    private void NotYet(string what, int phase = 3) =>
-        Msg.Info(this, $"«{what}» se conecta en la Fase {phase} del rediseño (esta ventana nueva está en construcción).\n\nMientras tanto puedes hacerlo con la aplicación completa, Medrar.exe.");
-
     // ------------------------------------------------------------------ extraer
 
     private ExtractResult? ExtractWith(ArchiveSession s, IEnumerable<ArchiveEntry> selection, ExtractOptions o)
@@ -91,14 +88,12 @@ public partial class MainWindow
         bool multiple = paths.Count > 1;
 
         string dest = here ? Path.GetDirectoryName(Path.GetFullPath(archivePath))! : DefaultExtractDir(archivePath);
+        ExtractRequest? req = null;
         if (ask)
         {
-            var dlg = new Microsoft.Win32.OpenFolderDialog
-            {
-                Title = "Carpeta donde extraer", InitialDirectory = Directory.Exists(Path.GetDirectoryName(dest)) ? Path.GetDirectoryName(dest)! : _folder
-            };
-            if (dlg.ShowDialog(this) != true) return;
-            dest = dlg.FolderName;
+            req = ExtractWindow.Ask(this, archivePath, dest, _settings, showSubfolderOption: !multiple);
+            if (req == null) return;
+            dest = req.Destination;
         }
 
         foreach (var path in paths)
@@ -107,18 +102,21 @@ public partial class MainWindow
             if (s == null) continue;
             try
             {
-                var o = new ExtractOptions
+                var o = req?.Options ?? new ExtractOptions
                 {
-                    DestinationDir = multiple ? Path.Combine(dest, Path.GetFileNameWithoutExtension(path)) : dest,
                     Overwrite = here ? OverwriteMode.Ask : _settings.ExtractOverwrite,
-                    KeepBrokenFiles = _settings.KeepBrokenFiles, RestoreTimes = true
+                    KeepBrokenFiles = _settings.KeepBrokenFiles
                 };
+                o.DestinationDir = multiple ? Path.Combine(dest, Path.GetFileNameWithoutExtension(path)) : dest;
+                o.RestoreTimes = true;
                 var entries = InArchive && ReferenceEquals(s, _session) ? EntriesForSelection(true) : s.Archive.Entries.ToList();
                 var res = ExtractWith(s, entries, o);
                 if (res != null)
                 {
                     SettingsStore.AddHistory(_settings, o.DestinationDir);
                     Say($"Extraídos {res.Extracted} fichero(s) en {o.DestinationDir}");
+                    if (req?.ShowInExplorer == true && Directory.Exists(o.DestinationDir))
+                        try { Process.Start(new ProcessStartInfo("explorer.exe", $"\"{o.DestinationDir}\"") { UseShellExecute = true }); } catch { /* sin Explorador */ }
                 }
             }
             finally { if (!ReferenceEquals(s, _session)) s.Dispose(); }
@@ -282,7 +280,9 @@ public partial class MainWindow
     {
         if (!InArchive)
         {
-            NotYet("Crear un archivo nuevo");
+            var paths = Selected().Where(n => !n.IsUp).Select(n => n.FullPath).ToArray();
+            if (paths.Length == 0) { Msg.Info(this, "Selecciona primero los ficheros o carpetas que quieres comprimir (o arrástralos a la ventana)."); return; }
+            AddToNewArchive(paths);
             return;
         }
         var menu = new ContextMenu { PlacementTarget = sender as UIElement ?? FileList, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
@@ -308,10 +308,16 @@ public partial class MainWindow
         if (!InArchive) return;
         if (!Archive.CanModify) { Msg.Warn(this, NotModifiableMessage()); return; }
         if (Archive.IsLocked) { Msg.Warn(this, "El archivo está bloqueado: no se puede modificar."); return; }
-        List<SourceItem> items;
-        try { items = SourceCollector.Collect(paths, new ArchiveOptions(), PathMode.Relative, _inside); }
-        catch (Exception ex) { Msg.Error(this, Msg.Describe(ex)); return; }
-        if (ApplyEdit("Añadiendo al archivo", plan => plan.Add.AddRange(items))) Say($"Añadidos {items.Count(i => !i.IsDirectory)} fichero(s) al archivo");
+        var s = _session!;
+        var req = AddWindow.Ask(this, paths, _folder, _settings, s.Path);
+        if (req == null) return;
+        req.Subfolder = _inside;
+        req.ArchivePath = s.Path;
+        req.Options.Password = s.Password;
+        s.Archive.Dispose();
+        var created = CreateArchive(req, paths, s);
+        ReloadArchive();
+        if (created != null) Say("Archivo actualizado");
     }
 
     private void Command_Delete(object sender, RoutedEventArgs e)
@@ -486,9 +492,92 @@ public partial class MainWindow
 
     // ------------------------------------------------------------------ pendientes de la Fase 3 (necesitan sus diálogos)
 
-    private void Command_Wizard(object sender, RoutedEventArgs e) => NotYet("Asistente");
-    private void Command_Convert(object sender, RoutedEventArgs e) => NotYet("Convertir archivos");
-    private void Command_Find(object sender, RoutedEventArgs e) => NotYet("Buscar ficheros");
+    private void Command_Wizard(object sender, RoutedEventArgs e)
+    {
+        var w = WizardWindow.Ask(this, _folder, _settings);
+        if (w == null) return;
+        if (w.Create)
+        {
+            var created = CreateArchive(w.Request, w.Sources);
+            if (created == null) return;
+            if (InArchive) CloseArchive(false);
+            LoadFolder(Path.GetDirectoryName(created)!);
+            SelectByName(Path.GetFileName(created));
+            Say("Archivo creado: " + created);
+        }
+        else
+        {
+            var s = ArchiveSession.Open(this, w.ArchivePath);
+            if (s == null) return;
+            try
+            {
+                var o = new ExtractOptions { DestinationDir = w.Destination, Overwrite = _settings.ExtractOverwrite, KeepBrokenFiles = _settings.KeepBrokenFiles, RestoreTimes = true };
+                var res = ExtractWith(s, s.Archive.Entries.ToList(), o);
+                if (res != null && Directory.Exists(w.Destination))
+                {
+                    Msg.Info(this, $"Se extrajeron {res.Extracted} fichero(s) en:\n{w.Destination}");
+                    if (InArchive) CloseArchive(false);
+                    LoadFolder(w.Destination);
+                }
+            }
+            finally { s.Dispose(); }
+        }
+    }
+
+    private void Command_Convert(object sender, RoutedEventArgs e)
+    {
+        var initial = InArchive ? new List<string> { _session!.Path }
+            : Selected().Where(n => !n.IsDirectory && ArchiveOpener.LooksLikeArchive(n.FullPath)).Select(n => n.FullPath).ToList();
+        var d = ConvertWindow.Ask(this, initial, _folder);
+        if (d == null) return;
+        int ok = 0;
+        var failures = new List<string>();
+        foreach (var src in d.Sources)
+        {
+            string name = Path.GetFileNameWithoutExtension(src);
+            if (name.EndsWith(".tar", StringComparison.OrdinalIgnoreCase)) name = Path.GetFileNameWithoutExtension(name);
+            string dest = Path.Combine(d.Destination, name + ArchiveBuilder.Extension(d.Options.Format));
+            if (File.Exists(dest)) dest = Extractor.UniqueName(dest);
+            string? pw = null;
+            using (var probe = ArchiveSession.Open(this, src)) { if (probe == null) continue; pw = probe.Password; }
+            var err = ProgressWindow.Run(this, "Convirtiendo " + Path.GetFileName(src), p => ArchiveEditor.Convert(src, pw, dest, d.Options, p), out bool cancelled);
+            if (cancelled) break;
+            if (err != null) failures.Add($"{Path.GetFileName(src)}: {Msg.Describe(err)}");
+            else
+            {
+                ok++;
+                if (d.DeleteOriginals) { try { VolumeSet.DeleteAll(src); } catch { /* en uso */ } }
+            }
+        }
+        if (failures.Count > 0) ResultWindow.Show(this, "Convertir archivos", $"Convertidos {ok}; fallaron {failures.Count}:", failures, false);
+        else if (ok > 0) Msg.Info(this, $"Se convirtieron {ok} archivo(s) en:\n{d.Destination}");
+        if (InArchive) CloseArchive(true); else LoadFolder(_folder);
+    }
+
+    private void Command_Find(object sender, RoutedEventArgs e)
+    {
+        string? p = FindWindow.Ask(this, _folder, InArchive ? Archive : null, _session?.Password);
+        if (p == null) return;
+        if (InArchive)
+        {
+            int i = p.LastIndexOf('/');
+            _inside = i < 0 ? "" : p[..i];
+            ShowArchiveLevel();
+            SelectByName(i < 0 ? p : p[(i + 1)..]);
+        }
+        else if (Directory.Exists(p)) LoadFolder(p);
+        else if (File.Exists(p))
+        {
+            LoadFolder(Path.GetDirectoryName(p)!);
+            if (ArchiveOpener.LooksLikeArchive(p)) OpenArchive(p); else SelectByName(Path.GetFileName(p));
+        }
+    }
+
+    private void SelectByName(string name)
+    {
+        for (int i = 0; i < _view.Count; i++)
+            if (((FileItem)_view.GetItemAt(i)).Name.Equals(name, StringComparison.OrdinalIgnoreCase)) { SelectRowForSnapshot(i); break; }
+    }
 
     // ------------------------------------------------------------------ menú contextual de la lista
 
