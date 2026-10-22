@@ -77,9 +77,14 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Construir el instalador nuevo
+      # Con la misma versión que la publicada, Windows Installer no actualiza (instala al lado). Se simula una versión posterior.
+      - name: Construir el instalador nuevo (versión 99.0.0 para la prueba)
         shell: pwsh
-        run: ./build.ps1 -Installer
+        run: |
+          Get-ChildItem src -Recurse -Filter *.csproj | ForEach-Object {
+            (Get-Content $_.FullName -Raw) -replace '<Version>[^<]+</Version>', '<Version>99.0.0</Version>' | Set-Content $_.FullName -NoNewline
+          }
+          ./build.ps1 -Installer
 
       - name: Instalar la versión publicada anterior, actualizar y comprobar
         shell: pwsh
