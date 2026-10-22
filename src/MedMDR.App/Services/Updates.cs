@@ -77,11 +77,7 @@ internal static class Updates
     {
         if (!UpdateInstaller.IsMsiInstall())
         {
-            Msg.Info(owner, UpdateInstaller.IsLegacyPerUserInstall()
-                ? $"Esta copia de {AppInfo.Name} está instalada solo para tu usuario (versiones 1.2.x). La versión nueva se instala para todo el equipo " +
-                  "y pide permisos de administrador, así que no se puede poner encima.\n\n" +
-                  $"Desinstala la actual (Configuración de Windows, Aplicaciones, {AppInfo.Name}) y ejecuta el instalador nuevo; se abrirá su página ahora."
-                : $"Esta copia de {AppInfo.Name} no se instaló con el instalador (.msi), así que no puede actualizarse sola.\n\n" +
+            Msg.Info(owner, $"Esta copia de {AppInfo.Name} no se instaló con el instalador (.msi), así que no puede actualizarse sola.\n\n" +
                   "Se abrirá la página de la versión para que descargues el instalador nuevo.");
             if (info.PageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                 Process.Start(new ProcessStartInfo(info.PageUrl) { UseShellExecute = true });

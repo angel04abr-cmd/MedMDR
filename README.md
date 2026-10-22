@@ -4,9 +4,6 @@ Gestor de archivos comprimidos para Windows, escrito desde cero en C# (.NET 10, 
 **Crea** archivos **.mdr** (formato propio), **ZIP** y **7Z** (ambos también con contraseña AES-256), **TAR**, **TAR.GZ** y **GZ**,
 y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros.
 
-> MedMDR se llamaba antes **Medrar**. Si ya lo tenías instalado, la actualización instala MedMDR encima y **conserva tu configuración**
-> (favoritos, perfiles, carpetas recientes): se copia de `%APPDATA%\Medrar` a `%APPDATA%\MedMDR` la primera vez que se abre.
->
 > MedMDR es una versión propia inspirada en las funciones de un gestor clásico de archivos comprimidos.
 > No contiene código, imágenes, iconos ni textos de ningún otro programa: todo está escrito y dibujado aquí.
 
@@ -15,8 +12,6 @@ y **abre** además RAR (también con contraseña), BZ2, XZ, LZ, CAB, ISO y otros
 ## Descargar e instalar
 
 Ve a **Releases** (a la derecha en GitHub) y baja **`MedMDR-<versión>-x64.msi`**: es el instalador de Windows.
-(Cada release trae también `Medrar-<versión>-x64.msi`, una copia idéntica con el nombre antiguo: solo sirve para que las copias
-instaladas cuando el programa se llamaba Medrar encuentren la actualización. Tú baja la de `MedMDR-`.)
 
 1. Haz doble clic y sigue el asistente (está en español). Se instala **para todo el equipo**, en
    `C:\Program Files\MedMDR`, y **pide permisos de administrador** (la ventana de Windows «¿Permitir cambios?»). MedMDR aparece en
@@ -31,14 +26,6 @@ instaladas cuando el programa se llamaba Medrar encuentren la actualización. T�
 
 > El instalador **no está firmado digitalmente**, así que Windows SmartScreen puede mostrar «Windows protegió su PC»:
 > pulsa *Más información → Ejecutar de todos modos*. (Firmar exige un certificado de pago.)
->
-> **Si tenías Medrar 1.2.x** (instalado «solo para tu usuario»), desinstálalo antes: la 1.3 se instala para todo el equipo y
-> no se puede poner encima de aquella. Esas versiones 1.2.x no pueden actualizarse solas a la 1.3; al intentarlo, el programa lo explica y abre
-> la página de descarga. Tus archivos y tu configuración no se tocan.
->
-> **Si tenías Medrar 1.1.x instalado con el antiguo instalador `.exe`** (Medrar-Setup-….exe), desinstálalo antes
-> (Configuración de Windows → Aplicaciones → MedMDR). El `.msi` nuevo lo detecta y se niega a instalarse encima, porque las
-> asociaciones de archivos de la versión antigua anularían las nuevas. Tus archivos y tu configuración no se tocan.
 
 **Sin instalar (portable):** la release también trae `MedMDR-<versión>-win-x64.zip`; descomprímelo y abre `MedMDR.exe`.
 La copia portable avisa de las versiones nuevas, pero no se instala sola (solo la del `.msi` puede hacerlo).
@@ -244,9 +231,8 @@ dotnet test tests\MedMDR.Tests                                solo las pruebas
 
 1. Sube `<Version>` en los cuatro `.csproj` (formato `1.2.3`; el instalador y el actualizador comparan esos tres números).
 2. `git commit`, `git tag v1.2.3` y `git push origin main --tags`.
-3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el `.msi`, su copia con
-   el nombre antiguo (`Medrar-…msi`), el `.zip` y `SHA256SUMS.txt`. **Hacen falta todos** para que las copias ya instaladas se
-   actualicen solas (las anteriores a la 2.0 solo buscan el nombre `Medrar-…msi`).
+3. La acción de GitHub (`.github/workflows/release.yml`) compila, ejecuta las pruebas y crea la *release* con el `.msi`, el `.zip` y
+   `SHA256SUMS.txt`. **Hacen falta los tres** para que las copias ya instaladas se actualicen solas.
 
 ## Licencia
 

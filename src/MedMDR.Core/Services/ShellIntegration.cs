@@ -30,30 +30,8 @@ public sealed class ShellIntegration
         c.SetValue("", command);
     }
 
-    /// <summary>Claves que dejaban las versiones anteriores, cuando el programa se llamaba Medrar.</summary>
-    private static readonly string[] LegacyKeys =
-    {
-        @"*\shell\Medrar.Add", @"Directory\shell\Medrar.Add", @"Directory\Background\shell\Medrar.Open", "Medrar.Archive"
-    };
-
-    private void RemoveLegacy()
-    {
-        foreach (var k in LegacyKeys)
-        {
-            try { Root.DeleteSubKeyTree($@"{_classes}\{k}", throwOnMissingSubKey: false); } catch { }
-        }
-        // .mdr solo se quita si seguía apuntando al nombre antiguo
-        try
-        {
-            using var ext = Root.OpenSubKey($@"{_classes}\.mdr");
-            if ((ext?.GetValue("") as string) == "Medrar.Archive") Root.DeleteSubKeyTree($@"{_classes}\.mdr", throwOnMissingSubKey: false);
-        }
-        catch { }
-    }
-
     public void Install(string exePath, bool associateMdr = true, bool contextMenu = true)
     {
-        RemoveLegacy();
         string icon = $"\"{exePath}\",0";
         if (contextMenu)
         {
@@ -89,7 +67,6 @@ public sealed class ShellIntegration
 
     public void Uninstall()
     {
-        RemoveLegacy();
         foreach (var ext in OpenWithExtensions)
         {
             try { using var k = Root.OpenSubKey($@"{_classes}\{ext}\OpenWithProgids", writable: true); k?.DeleteValue("MedMDR.Archive", throwOnMissingValue: false); } catch { }

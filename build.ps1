@@ -4,8 +4,7 @@
 #   MedMDR.Sfx.Full.exe -> módulo autoextraíble completo (incluye .NET; no necesita nada instalado)
 #   mdr.exe             -> versión de línea de comandos
 # Requisitos: .NET SDK 10 (https://dotnet.microsoft.com/download).
-# Con -Installer genera además el instalador MedMDR-<versión>-x64.msi (WiX 6; se descarga solo en .tools\) y una copia con el nombre
-#   antiguo, Medrar-<versión>-x64.msi: las copias ya instaladas (cuando el programa se llamaba Medrar) solo buscan ese nombre para actualizarse.
+# Con -Installer genera además el instalador MedMDR-<versión>-x64.msi (WiX 6; se descarga solo en .tools\).
 # Con -Zip o -Installer escribe también dist\SHA256SUMS.txt.
 # Uso:  powershell -ExecutionPolicy Bypass -File build.ps1 [-Test] [-Zip] [-Installer]
 
@@ -55,10 +54,6 @@ if ($Installer) {
         if ($LASTEXITCODE -ne 0) { throw 'Fallo al crear el instalador MSI.' }
     } finally { Pop-Location }
     Write-Host "Instalador: $msi" -ForegroundColor Green
-    # Copia con el nombre antiguo (idéntica): permite que las copias instaladas de «Medrar» encuentren la actualización.
-    $legacyMsi = Join-Path $root "dist\Medrar-$version-x64.msi"
-    Copy-Item $msi $legacyMsi
-    Write-Host "Copia con el nombre antiguo: $legacyMsi" -ForegroundColor Green
 }
 
 if ($Zip) {
@@ -71,7 +66,7 @@ if ($Zip) {
 if ($Zip -or $Installer) {
     # Sumas SHA-256 de lo publicable: la app las usa para comprobar la descarga antes de actualizar.
     $sums = Get-ChildItem (Join-Path $root 'dist') -File |
-        Where-Object { $_.Extension -in '.msi', '.zip' -and ($_.Name -like "MedMDR-$version-*" -or $_.Name -like "Medrar-$version-*") } | Sort-Object Name |
+        Where-Object { $_.Extension -in '.msi', '.zip' -and $_.Name -like "MedMDR-$version-*" } | Sort-Object Name |
         ForEach-Object { '{0} *{1}' -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name }
     [IO.File]::WriteAllLines((Join-Path $root 'dist\SHA256SUMS.txt'), $sums, (New-Object Text.UTF8Encoding($false)))
     Write-Host "Sumas: dist\SHA256SUMS.txt" -ForegroundColor Green

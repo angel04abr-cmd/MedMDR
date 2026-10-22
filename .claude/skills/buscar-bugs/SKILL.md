@@ -42,7 +42,7 @@ antes de arreglarlo.
 - **Rutas con espacios** pasadas como argumentos sin comillas (`Start-Process -ArgumentList`): el usuario se llama «Angel Blas».
 - **Listas grandes**: cargar 100 000 filas elemento a elemento; probar con carpetas y archivos enormes.
 - **Estado compartido**: pruebas que escriben la configuración real. Las pruebas usan `MEDMDR_DATA_DIR` para aislarse.
-- **Nombres antiguos**: «Medrar» solo debe quedar en lo que se conserva a propósito (ver `docs/DESARROLLO.md`).
+- **Nombre**: el programa, el repositorio y todo lo que se publica se llaman MedMDR; no debe aparecer ningún otro nombre.
 
 ## 4. Al arreglar
 

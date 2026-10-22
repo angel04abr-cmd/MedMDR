@@ -10,7 +10,7 @@ src/MedMDR.Core     Motor sin interfaz: formatos, cifrado, recuperación, volúm
 src/MedMDR.App      Aplicación de escritorio (WPF con el tema Fluent de .NET 10) → MedMDR.exe
 src/MedMDR.Cli      Línea de comandos → mdr.exe
 src/MedMDR.Sfx      Módulo autoextraíble (ligero y «completo», con .NET incluido)
-tests/MedMDR.Tests  Pruebas automáticas del motor, del actualizador y de la migración desde «Medrar»
+tests/MedMDR.Tests  Pruebas automáticas del motor, del actualizador y de la seguridad de los borrados
 installer/          Instalador MSI (WiX 6) y su aviso de licencia
 docs/FORMATO-MDR.md Especificación del formato .mdr
 ```
@@ -40,15 +40,13 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -Test -Zip -Installer pruebas
 ```
 
 `build.ps1 -Installer` descarga WiX 6 en `.tools\` la primera vez (se elige la 6.x a propósito: la 7 exige aceptar una cuota OSMF).
-Además del `MedMDR-<versión>-x64.msi` crea una copia idéntica `Medrar-<versión>-x64.msi`: las copias instaladas cuando el programa
-se llamaba Medrar solo buscan ese nombre para actualizarse. **Hay que seguir publicándola** mientras queden copias antiguas.
 
 ### Publicar una versión
 
 1. Sube `<Version>` en los cuatro `.csproj` (formato `1.2.3`).
 2. `git commit`, `git tag v1.2.3` y `git push origin main --tags`.
-3. La acción `release.yml` compila, prueba y crea la release con el `.msi`, su copia con el nombre antiguo, el `.zip` y `SHA256SUMS.txt`.
-   La acción `msi-test.yml` instala y desinstala el MSI en un Windows limpio y prueba la actualización real desde Medrar 1.5.0.
+3. La acción `release.yml` compila, prueba y crea la release con el `.msi`, el `.zip` y `SHA256SUMS.txt`.
+   La acción `msi-test.yml` instala y desinstala el MSI en un Windows limpio y prueba la actualización real desde la versión publicada anterior.
 
 ## Probar la ventana sin tocarla (solo desarrollo)
 
@@ -75,7 +73,7 @@ las rutas con espacios que pases como argumentos y limpia después `%APPDATA%\Me
 Las pruebas de xunit no ven los fallos que solo ocurren al **ejecutar** la ventana (el cierre al borrar era un error de memoria nativo, el «(1)» de
 «Comprimir en…» un nombre mal formado). Por eso hay tres capas:
 
-1. `dotnet test tests\MedMDR.Tests` — el motor, el actualizador, la migración desde Medrar y la seguridad de los borrados.
+1. `dotnet test tests\MedMDR.Tests` — el motor, el actualizador y la seguridad de los borrados.
 2. `powershell -ExecutionPolicy Bypass -File tools\Smoke-Test.ps1` — **prueba de humo**: abre la aplicación de verdad en ~35 escenarios (borrar, comprimir,
    extraer, convertir, buscar, asistente, configuración, menú de Windows, archivo roto…) y la ida y vuelta de cada formato con `mdr.exe`. Mira el código de
    salida, los cuelgues, los fallos que Windows anota para `MedMDR.exe` y `error.log`, y comprueba el efecto real en disco. Trabaja en una carpeta temporal
@@ -87,14 +85,3 @@ Las pruebas de xunit no ven los fallos que solo ocurren al **ejecutar** la venta
    hallazgo se reproduce antes de arreglarlo (en la primera revisión, 1 de 8 resultó falso).
 
 Lo que **no** se puede comprobar así: arrastrar con el ratón al Explorador, menús desplegables abiertos, escalas de pantalla del 150 % o 200 %, alto contraste.
-
-## Nombres que se conservan a propósito
-
-El programa se llamaba **Medrar** hasta la versión 1.5. Para no dejar sin actualizar ni sin configuración a quien lo tenía instalado:
-
-- La configuración se copia de `%APPDATA%\Medrar` a `%APPDATA%\MedMDR` la primera vez (`SettingsStore.MigrateLegacy`).
-- Las claves antiguas del Explorador (`Medrar.Archive`, `Medrar.Add`…) se quitan al integrar o desintegrar (`ShellIntegration`).
-- El actualizador acepta instaladores `MedMDR-*` y `Medrar-*` (`UpdateService`); un token guardado antes se sigue leyendo (`TokenProtector`).
-- El instalador conserva su `UpgradeCode` (así actualiza y quita Medrar) y detecta las instalaciones 1.2.x de usuario (`HKCU\Software\Medrar`).
-- GitHub redirige la dirección antigua del repositorio a la nueva: **no se debe crear otro repositorio llamado «Medrar»**, porque rompería esa
-  redirección y las copias antiguas dejarían de actualizarse.

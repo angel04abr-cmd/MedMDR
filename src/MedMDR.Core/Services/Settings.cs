@@ -87,31 +87,9 @@ public static class SettingsStore
     public static string DefaultPath =>
         System.IO.Path.Combine(DataDirFor(Environment.GetEnvironmentVariable(DataDirVariable)), "settings.json");
 
-    /// <summary>Carpeta de configuración de las versiones anteriores, cuando el programa se llamaba Medrar.</summary>
-    public static string LegacyPath =>
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Medrar", "settings.json");
-
-    /// <summary>Primera vez con el nombre nuevo: copia la configuración antigua (la original no se toca). Devuelve true si copió algo.</summary>
-    public static bool MigrateLegacy(string? path = null, string? legacy = null)
-    {
-        path ??= DefaultPath; legacy ??= LegacyPath;
-        try
-        {
-            if (File.Exists(path) || !File.Exists(legacy)) return false;
-            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
-            File.Copy(legacy, path);
-            return true;
-        }
-        catch { return false; }   // sin permisos o en uso: se empieza con la configuración por defecto
-    }
-
     public static AppSettings Load(string? path = null)
     {
-        if (path == null)
-        {
-            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DataDirVariable))) MigrateLegacy();   // con carpeta de pruebas no se copia nada del usuario
-            path = DefaultPath;
-        }
+        path ??= DefaultPath;
         try
         {
             if (File.Exists(path))

@@ -22,8 +22,7 @@ Busca **fallos que ocurrirían de verdad**, no estilo. Tu lista, de más a menos
    `async void` sin control, diálogos que bloquean sin forma de responder en los modos de prueba, `DevTools.Hook` ausente en ventanas nuevas.
 5. **Rendimiento**: objetos pesados creados por fichero (el codificador Brotli por fichero costaba 10 ms), listas que se cargan elemento a elemento,
    consultas O(n²) sobre el listado de un archivo (probado: 100 000 ficheros deben abrirse en segundos).
-6. **Instalador y nombres**: componentes del MSI sin `KeyPath`, claves de registro huérfanas, cambios que rompen la actualización desde «Medrar»
-   (ver `docs/DESARROLLO.md`: nombres que se conservan a propósito), versiones que no coinciden en los cuatro `.csproj`.
+6. **Instalador y nombres**: componentes del MSI sin `KeyPath`, claves de registro huérfanas, cambios que rompen la actualización desde la versión anterior (mismo `UpgradeCode`), versiones que no coinciden en los cuatro `.csproj`.
 7. **Pruebas que no prueban nada**: `return` temprano si falta un programa externo, aserciones vacías.
 
 ## Cómo informar

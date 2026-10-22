@@ -32,7 +32,7 @@ public sealed class UpdateService : IDisposable
     public const string SumsName = "SHA256SUMS.txt";
     private const int MaxRedirects = 5;
 
-    private static readonly Regex MsiName = new(@"^(?:MedMDR|Medrar)-(\d+\.\d+\.\d+)-x64\.msi$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex MsiName = new(@"^MedMDR-(\d+\.\d+\.\d+)-x64\.msi$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly HttpClient _http;
     private readonly string _api, _repo;
@@ -109,10 +109,7 @@ public sealed class UpdateService : IDisposable
                 {
                     string name = Str(a, "name");
                     string url = a.TryGetProperty("url", out var u) && u.ValueKind == JsonValueKind.String ? u.GetString()! : Str(a, "browser_download_url");
-                    // Cada versión lleva el instalador con el nombre nuevo (MedMDR-…) y una copia con el antiguo (Medrar-…), para que las
-                    // copias ya instaladas, que solo conocen el nombre antiguo, puedan actualizarse. Se prefiere el nombre nuevo.
-                    if (MsiName.IsMatch(name) && (msiName == null || name.StartsWith("MedMDR-", StringComparison.OrdinalIgnoreCase)))
-                    { msiName = name; msiUrl = url; msiSize = a.TryGetProperty("size", out var s) && s.TryGetInt64(out var n) ? n : 0; }
+                    if (MsiName.IsMatch(name)) { msiName = name; msiUrl = url; msiSize = a.TryGetProperty("size", out var s) && s.TryGetInt64(out var n) ? n : 0; }
                     else if (name.Equals(SumsName, StringComparison.OrdinalIgnoreCase)) sumsUrl = url;
                 }
             if (msiName == null || msiUrl == null)
@@ -236,7 +233,6 @@ public sealed class UpdateService : IDisposable
 public static class TokenProtector
 {
     private static readonly byte[] Entropy = Encoding.UTF8.GetBytes("MedMDR/update-token/v1");
-    private static readonly byte[] LegacyEntropy = Encoding.UTF8.GetBytes("Medrar/update-token/v1");   // tokens guardados cuando el programa se llamaba Medrar
 
     public static string Protect(string token)
     {
@@ -247,12 +243,8 @@ public static class TokenProtector
     public static string Unprotect(string? stored)
     {
         if (string.IsNullOrEmpty(stored)) return "";
-        foreach (var entropy in new[] { Entropy, LegacyEntropy })
-        {
-            try { return Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(stored), entropy, DataProtectionScope.CurrentUser)); }
-            catch (Exception ex) when (ex is CryptographicException or FormatException) { /* se prueba la otra clave */ }
-        }
-        return "";   // otro usuario/equipo: se ignora
+        try { return Encoding.UTF8.GetString(ProtectedData.Unprotect(Convert.FromBase64String(stored), Entropy, DataProtectionScope.CurrentUser)); }
+        catch (Exception ex) when (ex is CryptographicException or FormatException) { return ""; }   // otro usuario/equipo: se ignora
     }
 }
 
@@ -261,17 +253,14 @@ public static class TokenProtector
 public static class UpdateInstaller
 {
     /// <summary>True si esta copia salió del instalador .msi para todo el equipo (deja una marca en HKLM con la ruta de instalación).</summary>
-    public static bool IsMsiInstall(string? appDir = null) => MarkerMatches(Microsoft.Win32.RegistryHive.LocalMachine, appDir, @"Software\MedMDR");
+    public static bool IsMsiInstall(string? appDir = null) => MarkerMatches(appDir);
 
-    /// <summary>True si esta copia es de las versiones 1.2.x, instaladas solo para el usuario (marca en HKCU): no se actualizan solas.</summary>
-    public static bool IsLegacyPerUserInstall(string? appDir = null) => MarkerMatches(Microsoft.Win32.RegistryHive.CurrentUser, appDir, @"Software\Medrar");   // las 1.2.x usaban el nombre antiguo
-
-    private static bool MarkerMatches(Microsoft.Win32.RegistryHive hive, string? appDir, string keyName)
+    private static bool MarkerMatches(string? appDir)
     {
         try
         {
-            using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(hive, Microsoft.Win32.RegistryView.Registry64);
-            using var k = baseKey.OpenSubKey(keyName);
+            using var baseKey = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64);
+            using var k = baseKey.OpenSubKey(@"Software\MedMDR");
             if (k?.GetValue("Installer") as string != "msi") return false;
             string? dir = k.GetValue("InstallDir") as string;
             appDir ??= AppContext.BaseDirectory;

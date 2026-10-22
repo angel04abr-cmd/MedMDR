@@ -40,7 +40,6 @@ jobs:
           $tag = '${{ github.ref_name }}'
           $files = @(
             (Get-ChildItem dist -Filter 'MedMDR-*-x64.msi' | Select-Object -First 1),
-            (Get-ChildItem dist -Filter 'Medrar-*-x64.msi' | Select-Object -First 1),   # copia con el nombre antiguo: así se actualizan las copias instaladas de «Medrar»
             (Get-ChildItem dist -Filter 'MedMDR-*-win-x64.zip' | Select-Object -First 1),
             (Get-Item dist\SHA256SUMS.txt)
           ) | ForEach-Object { $_.FullName }

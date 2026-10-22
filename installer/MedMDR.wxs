@@ -31,12 +31,6 @@
     <Launch Condition="Installed OR (NOT INNO_ANTIGUO_64 AND NOT INNO_ANTIGUO_32 AND NOT INNO_ANTIGUO_USR)"
             Message="Hay una versión anterior de MedMDR instalada con el instalador .exe. Desinstálala primero (Configuración de Windows, Aplicaciones, MedMDR) y vuelve a ejecutar este instalador. Tus archivos y tu configuración no se borran." />
     <?endif?>
-    <!-- Las versiones 1.2.x se instalaban solo para el usuario; no se pueden actualizar a una instalación para todo el equipo. -->
-    <Property Id="MEDRAR_USUARIO_ANTIGUO">
-      <RegistrySearch Id="BuscaMedMDRUsuario" Root="HKCU" Key="SOFTWARE\Medrar" Name="Installer" Type="raw" />
-    </Property>
-    <Launch Condition="Installed OR NOT MEDRAR_USUARIO_ANTIGUO"
-            Message="Hay una versión anterior de MedMDR instalada solo para tu usuario (versiones 1.2.x). Desinstálala primero (Configuración de Windows, Aplicaciones, MedMDR) y vuelve a ejecutar este instalador, que instala MedMDR para todo el equipo. Tus archivos y tu configuración no se borran." />
 
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
 

@@ -67,8 +67,8 @@ jobs:
           Write-Host 'Desinstalación limpia'
 
   upgrade:
-    # El caso real de los usuarios: tienen instalada la 1.5.0 (cuando el programa se llamaba Medrar) y el actualizador les baja
-    # «Medrar-<versión>-x64.msi». Debe quitar la versión antigua, instalar MedMDR y dejar las asociaciones en el nombre nuevo.
+    # El caso real de los usuarios: tienen instalada la versión anterior de MedMDR y el actualizador les baja el instalador nuevo.
+    # Debe sustituirla (mismo UpgradeCode), dejar una sola entrada en «Aplicaciones instaladas» y las asociaciones en su sitio.
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,34 +81,30 @@ jobs:
         shell: pwsh
         run: ./build.ps1 -Installer
 
-      - name: Instalar la 1.5.0, actualizar y comprobar
+      - name: Instalar la versión publicada anterior, actualizar y comprobar
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download v1.5.0 --repo angel04abr-cmd/MedMDR --pattern 'Medrar-1.5.0-x64.msi' --dir $env:RUNNER_TEMP
-          $old = Join-Path $env:RUNNER_TEMP 'Medrar-1.5.0-x64.msi'
+          # la última release publicada (la que tendrían instalada los usuarios antes de esta)
+          gh release download --repo angel04abr-cmd/MedMDR --pattern 'MedMDR-*-x64.msi' --dir "$env:RUNNER_TEMP\prev"
+          $old = (Get-ChildItem "$env:RUNNER_TEMP\prev" -Filter 'MedMDR-*-x64.msi' | Select-Object -First 1).FullName
+          Write-Host "Versión anterior: $old"
           $p = Start-Process msiexec -ArgumentList '/i', "`"$old`"", 'ADDLOCAL=ALL', '/qn' -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "la 1.5.0 no se instaló ($($p.ExitCode))" }
-          if (-not (Test-Path "$env:ProgramFiles\Medrar\Medrar.exe")) { throw 'la 1.5.0 no dejó Medrar.exe' }
-          Write-Host 'Instalada la 1.5.0'
+          if ($p.ExitCode -ne 0) { throw "la versión anterior no se instaló ($($p.ExitCode))" }
+          if (-not (Test-Path "$env:ProgramFiles\MedMDR\MedMDR.exe")) { throw 'la versión anterior no dejó MedMDR.exe' }
 
-          # lo que descargaría el actualizador antiguo: la copia con el nombre antiguo
-          $new = (Get-ChildItem dist -Filter 'Medrar-2*-x64.msi' | Select-Object -First 1).FullName
-          if (-not $new) { throw 'falta la copia Medrar-<versión>-x64.msi' }
+          $new = (Get-ChildItem dist -Filter 'MedMDR-*-x64.msi' | Select-Object -First 1).FullName
           $p = Start-Process msiexec -ArgumentList '/i', "`"$new`"", '/qn', '/l*v', "`"$env:RUNNER_TEMP\upg.log`"" -Wait -PassThru
           if ($p.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\upg.log" -Tail 60; throw "la actualización salió con $($p.ExitCode)" }
 
           $fallos = @()
           foreach ($f in 'MedMDR.exe', 'mdr.exe', 'MedMDR.Sfx.exe', 'MedMDR.Sfx.Full.exe') { if (-not (Test-Path "$env:ProgramFiles\MedMDR\$f")) { $fallos += "falta $f" } }
-          if (Test-Path "$env:ProgramFiles\Medrar\Medrar.exe") { $fallos += 'sigue instalado Medrar.exe' }
-          if (Test-Path -LiteralPath 'HKLM:\Software\Medrar') { $fallos += 'queda la clave HKLM\Software\Medrar' }
-          if (Test-Path -LiteralPath 'HKLM:\Software\Classes\Medrar.Archive') { $fallos += 'queda la asociación Medrar.Archive' }
           if ((Get-ItemProperty 'HKLM:\Software\Classes\.mdr').'(default)' -ne 'MedMDR.Archive') { $fallos += '.mdr no apunta a MedMDR.Archive' }
-          $arp = @(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | Where-Object { $_.DisplayName -in 'Medrar', 'MedMDR' })
-          if ($arp.Count -ne 1 -or $arp[0].DisplayName -ne 'MedMDR') { $fallos += "Aplicaciones instaladas: $($arp.DisplayName -join ', ')" }
-          if ($fallos) { $fallos; throw 'La actualización desde Medrar no dejó todo como se esperaba.' }
-          Write-Host 'Actualización desde Medrar 1.5.0 correcta'
+          $arp = @(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' | Where-Object { $_.DisplayName -eq 'MedMDR' })
+          if ($arp.Count -ne 1) { $fallos += "entradas de MedMDR en Aplicaciones instaladas: $($arp.Count)" }
+          if ($fallos) { $fallos; throw 'La actualización no dejó todo como se esperaba.' }
+          Write-Host 'Actualización correcta'
 
           $p = Start-Process msiexec -ArgumentList '/x', "`"$new`"", '/qn' -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "la desinstalación salió con $($p.ExitCode)" }
