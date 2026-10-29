@@ -47,6 +47,7 @@ public sealed class ShellIntegration
         }
         SetCommand(@"MedMDR.Archive\shell\open", "Abrir con MedMDR", $"\"{exePath}\" \"%1\"", icon);
         SetCommand(@"MedMDR.Archive\shell\extracthere", "Extraer aquí", $"\"{exePath}\" --extract-here \"%1\"", icon);
+        SetCommand(@"MedMDR.Archive\shell\extractnamed", "Extraer en carpeta con el nombre del archivo", $"\"{exePath}\" --extract-named \"%1\"", icon);
         SetCommand(@"MedMDR.Archive\shell\extractto", "Extraer en una carpeta…", $"\"{exePath}\" --extract-to \"%1\"", icon);
         SetCommand(@"MedMDR.Archive\shell\test", "Comprobar el archivo", $"\"{exePath}\" --test \"%1\"", icon);
         string exeName = Path.GetFileName(exePath);

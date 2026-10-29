@@ -32,7 +32,7 @@ jobs:
           $dir = "$env:ProgramFiles\MedMDR"
           $fallos = @()
           foreach ($f in 'MedMDR.exe', 'mdr.exe', 'MedMDR.Sfx.exe', 'MedMDR.Sfx.Full.exe') { if (-not (Test-Path "$dir\$f")) { $fallos += "falta $f" } }
-          foreach ($k in 'Software\MedMDR', 'Software\Classes\.mdr', 'Software\Classes\MedMDR.Archive\shell\open\command',
+          foreach ($k in 'Software\MedMDR', 'Software\Classes\.mdr', 'Software\Classes\MedMDR.Archive\shell\open\command', 'Software\Classes\MedMDR.Archive\shell\extractnamed\command',
                          'Software\Classes\Directory\shell\MedMDR.Add\command', 'Software\Classes\Directory\Background\shell\MedMDR.Open\command',
                          'Software\Classes\Applications\MedMDR.exe\shell\open\command') {
             if (-not (Test-Path -LiteralPath "HKLM:\$k")) { $fallos += "falta la clave HKLM\$k" }

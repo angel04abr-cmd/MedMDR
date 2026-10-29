@@ -57,7 +57,7 @@ public sealed class LaunchArgs
     public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto
     public bool Accept;                     // solo pruebas: tras la captura, cada diálogo se acepta con sus valores (en vez de cancelarse)
     public int SelectRow = -1;
-    public string Mode = "main";           // main | add | extract-here | extract-to | test (órdenes del menú de Windows)
+    public string Mode = "main";           // main | add | extract-here | extract-named | extract-to | test (órdenes del menú de Windows)
     public List<string> Paths = new();
 
     public static LaunchArgs Parse(string[] args)
@@ -75,6 +75,7 @@ public sealed class LaunchArgs
                 case "--yes": l.AutoYes = true; break;
                 case "--add": l.Mode = "add"; break;
                 case "--extract-here": l.Mode = "extract-here"; break;
+                case "--extract-named": l.Mode = "extract-named"; break;
                 case "--extract-to": l.Mode = "extract-to"; break;
                 case "--test": l.Mode = "test"; break;
                 case "--accept": l.Accept = true; break;

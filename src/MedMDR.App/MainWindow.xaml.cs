@@ -533,6 +533,15 @@ public partial class MainWindow : Window
                 case "wizard": Command_Wizard(this, noArgs); break;
                 case "compress": QuickCompress(Selected().Where(n => !n.IsUp).Select(n => n.FullPath).ToArray()); break;   // solo pruebas
                 case "benchmark": Benchmark_Click(this, noArgs); break;
+                case "dragvirtual":                                                                            // solo pruebas
+                {
+                    var src = new ArchiveDragSource(Archive, EntriesForSelection(false), _inside);
+                    long bytes = 0; int files = 0;
+                    foreach (var it in src.Items.Where(i => !i.IsDirectory)) { using var st = it.Open!(); bytes += st.Length; files++; }
+                    Say($"ARRASTRE VIRTUAL: {src.Items.Count} elementos ({files} ficheros, {bytes} bytes): " + string.Join(" | ", src.Items.Select(i => i.RelativePath)));
+                    src.Dispose();
+                    break;
+                }
                 case "dragprep": Say("ARRASTRE: " + string.Join(" | ", PrepareDragPaths())); break;           // solo pruebas
                 case "menu":                                                                                   // solo pruebas
                     FileList_ContextMenuOpening(this, null!);

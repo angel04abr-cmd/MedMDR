@@ -29,6 +29,10 @@ docs/FORMATO-MDR.md Especificación del formato .mdr
 - `Dialogs/`: una ventana por diálogo (`AddWindow`, `ExtractWindow`, `ConvertWindow`, `FindWindow`, `WizardWindow`, `SettingsWindow`,
   `BenchmarkWindow`, `UpdateWindow`, mensajes, contraseñas, progreso, resultados, visor…). Todas se abren con `Ask(...)`/`Show(...)`
   y funcionan también sin ventana principal visible.
+- **Arrastrar fuera** (`MainWindow.DragOut.cs`, `Services/OleDrag.cs` y, en el motor, `Services/VirtualFiles.cs`): `VirtualFilesDataObject` entrega los formatos de
+  Windows «FileGroupDescriptorW» y «FileContents» (ficheros virtuales); `ArchiveDragSource` prepara la lista y extrae a una carpeta temporal solo lo que el destino
+  pide (en archivos sólidos, todo de una pasada). `OleDrag` llama a `DoDragDrop` de Windows porque WPF solo arrastra datos que ya existen. La pulsación sobre una fila
+  ya seleccionada no colapsa la selección (se decide al soltar). Ajuste: `AppSettings.DragAsVirtualFiles` (Configuración → Interfaz).
 - `Services/`: `ArchiveSession` (archivo abierto + contraseña, se pide una vez), `Updates` (actualizaciones), `ShellInfo`, `Recycle`.
 
 ## Compilar, probar y empaquetar
@@ -79,6 +83,7 @@ Las pruebas de xunit no ven los fallos que solo ocurren al **ejecutar** la venta
    salida, los cuelgues, los fallos que Windows anota para `MedMDR.exe` y `error.log`, y comprueba el efecto real en disco. Trabaja en una carpeta temporal
    con `MEDMDR_DATA_DIR` (no toca tu configuración); el único rastro es un fichero `medmdr-smoke-borrar-*.txt` en la Papelera. `-Only texto` repite uno,
    `-SkipBuild` no compila, `-KeepData` conserva la carpeta temporal. Cada fallo nuevo debe acabar como un escenario aquí o una prueba de xunit.
+   Además, `ShellDropTests` (opt-in con `MEDMDR_SHELL_DROP=1`) suelta lo arrastrado sobre el destino de soltar REAL del Explorador para una carpeta y compara los ficheros copiados.
 3. Claude Code: la skill `/buscar-bugs [interfaz|formatos|instalador|todo]` (`.claude/skills/buscar-bugs`) ordena todo el proceso y reparte el trabajo entre
    tres agentes del proyecto (`.claude/agents/`): `medmdr-revisor` (lee el código buscando fallos reales; solo lectura), `medmdr-probador` (usa la
    aplicación con los modos de prueba y mira las capturas) y `medmdr-formatos` (estresa los formatos y escribe pruebas). Sus informes son pistas: cada

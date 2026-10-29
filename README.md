@@ -67,7 +67,7 @@ comprimido para abrirlo como si fuera una carpeta. `Retroceso` sube un nivel. Pu
 ![Diálogo Añadir](docs/capturas/dialogo-anadir.png)
 
 **Extraer.** Abre o selecciona el archivo y pulsa **Extraer en** (`Alt+E`). *Órdenes → Extraer aquí* extrae junto al archivo sin hacer preguntas.
-También puedes **arrastrar ficheros desde dentro del archivo** a una carpeta del Explorador.
+También puedes **arrastrar ficheros desde dentro del archivo** a una carpeta del Explorador: el arrastre empieza al instante y los ficheros se extraen al soltar.
 
 **Contraseña.** En «Añadir» → *Establecer contraseña*. Vale para **.mdr**, **ZIP** y **7Z** (AES-256; ZIP y 7Z los abren 7-Zip y otros programas habituales).
 En .mdr y 7Z puedes marcar «Cifrar también los nombres» para que ni siquiera se vea la lista de ficheros; el ZIP no puede ocultar
@@ -124,7 +124,9 @@ Un autoextraíble es de solo lectura en MedMDR; *Herramientas → Quitar el mód
   (accesos, favoritos, recientes). **Temas** claro, oscuro o del sistema, que cambian al instante sin reiniciar; arrastrar y soltar (dentro y fuera),
   menú contextual y opciones del botón derecho de Windows.
 - **Integración con Windows** opcional (Configuración → Integración): asociar `.mdr` y menú del botón derecho.
-  Solo escribe en tu usuario (HKCU) y se quita con un clic.
+  Solo escribe en tu usuario (HKCU) y se quita con un clic. Con el instalador, las órdenes de MedMDR (Abrir, Extraer aquí, **Extraer en carpeta con el nombre
+  del archivo**, Extraer en…, Comprobar, Añadir a un archivo) están en el menú clásico del botón derecho. **En Windows 11** ese menú está bajo «Mostrar más opciones»:
+  Windows solo deja en el primer nivel a los programas con un paquete firmado con un certificado de confianza, y el instalador de MedMDR no está firmado.
 
 ### Línea de comandos
 
@@ -158,8 +160,10 @@ mdr -h                                                      ayuda completa
   su fichero `.mdrrec`, que sí sirve para archivos truncados. Si borras o pierdes el `.mdrrec`, no hay reparación.
 - **Autoextraíbles:** el ligero necesita .NET 10; el «completo» no necesita nada pero pesa ~50 MB. No admiten volúmenes.
   Un autoextraíble no lo pueden abrir otros programas como si fuera un archivo normal (sí MedMDR).
-- **Arrastrar fuera:** con poco contenido (hasta ~64 MB) es inmediato. Con más, MedMDR extrae primero (con progreso) y hay
-  que volver a arrastrar la selección.
+- **Arrastrar fuera:** el arrastre empieza al instante («ficheros virtuales», como el Explorador con un ZIP) y cada fichero se extrae al soltar. En
+  archivos «sólidos» (.mdr sólido, 7Z o RAR sólidos) sacar un fichero obliga a descomprimir lo anterior, así que ahí puede tardar más al soltar. Algunos
+  programas de destino (por ejemplo ciertos formularios web) no aceptan ficheros virtuales: en *Configuración → Interfaz* se puede cambiar a «ficheros
+  temporales» (se extrae antes de arrastrar, más compatible). Probado contra el destino de soltar real de Windows; el arrastre con el ratón lo prueba el usuario.
 - En modo sólido, el «tamaño comprimido» por fichero es una **estimación proporcional**.
 - Editar un archivo (añadir, eliminar, renombrar) lo **reescribe entero** en un temporal y lo sustituye al terminar; con
   archivos grandes necesita espacio libre en disco. RAR y autoextraíbles son de solo lectura.

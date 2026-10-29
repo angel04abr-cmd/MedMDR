@@ -27,6 +27,8 @@ public sealed class AppSettings
     public bool ShowArchiveComment { get; set; } = true;
     public bool ReuseWindow { get; set; }
     public bool AlwaysOnTop { get; set; }
+    /// <summary>Al arrastrar desde un archivo hacia el Explorador: true = ficheros virtuales (el arrastre empieza al instante y se extrae al soltar); false = se extrae antes a una carpeta temporal (más compatible).</summary>
+    public bool DragAsVirtualFiles { get; set; } = true;
     public bool SingleClickOpen { get; set; }
     public bool ShowTaskbarProgress { get; set; } = true;
     public bool FlatFolderView { get; set; }

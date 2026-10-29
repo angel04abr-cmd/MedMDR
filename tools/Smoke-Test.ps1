@@ -256,6 +256,12 @@ try {
         Run-App @($d, '--snapshot', (Join-Path $w 'd2.png'), '--auto', 'select:2,menu')
     }
 
+    Scenario 'Arrastre con ficheros virtuales (carpeta y fichero de un archivo)' {
+        $d = Copy-Demo 's-virtual'; $arc = Join-Path $d 'v.mdr'; [void](Mdr @('a', '-s', $arc, (Join-Path $d 'Vacaciones')))
+        # dentro de Vacaciones: «..», 3 carpetas (Documentos, Fotos, vacía) y luego los ficheros
+        Run-App @($arc, '--snapshot', (Join-Path $w 'dv1.png'), '--auto', 'select:1,open,select:1,dragvirtual,select:4,dragvirtual')
+    }
+
     Write-Host "`n== Órdenes del menú de Windows (sin ventana principal) ==" -ForegroundColor Cyan
 
     Scenario 'Menú de Windows: --test' {
@@ -267,6 +273,13 @@ try {
         Remove-Item (Join-Path $d 'Vacaciones') -Recurse -Force
         Run-App @('--extract-here', $arc, '--yes')
         if (-not (Test-Path (Join-Path $d 'Vacaciones\notas.txt'))) { 'no extrajo junto al archivo' }
+    }
+    Scenario 'Menú de Windows: --extract-named (carpeta con el nombre del archivo)' {
+        $d = Copy-Demo 's-w-nombre'; $arc = Join-Path $d 'mis fotos.mdr'; [void](Mdr @('a', $arc, (Join-Path $d 'Vacaciones')))
+        Run-App @('--extract-named', $arc, '--yes')
+        $dest = Join-Path $d 'mis fotos'
+        if (-not (Test-Path (Join-Path $dest ('Vacaciones' + [char]92 + 'notas.txt')))) { 'no extrajo en una carpeta con el nombre del archivo' }
+        elseif ((Tree-Hash (Join-Path $dest 'Vacaciones')) -ne (Tree-Hash (Join-Path $w 'demo\Vacaciones'))) { 'lo extraído no es idéntico al original' }
     }
     Scenario 'Menú de Windows: --add' {
         $d = Copy-Demo 's-w-add'

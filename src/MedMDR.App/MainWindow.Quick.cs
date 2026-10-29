@@ -38,7 +38,7 @@ public partial class MainWindow
         if (mode == "test") return TestSession(s) ? 0 : 3;
 
         string name = Path.GetFileNameWithoutExtension(path);
-        string dest = Path.GetDirectoryName(path)!;
+        string dest = mode == "extract-named" ? DefaultExtractDir(path) : Path.GetDirectoryName(path)!;     // «extract-named»: carpeta con el nombre del archivo
         var o = new ExtractOptions { DestinationDir = dest, Overwrite = _settings.ExtractOverwrite, KeepBrokenFiles = _settings.KeepBrokenFiles, RestoreTimes = true };
         if (mode == "extract-to")
         {

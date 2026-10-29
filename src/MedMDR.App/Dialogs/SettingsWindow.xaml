@@ -25,6 +25,9 @@
                         <CheckBox x:Name="FullTitleCheck" Content="Mostrar la ruta completa en la barra de título" Margin="0,3" />
                         <CheckBox x:Name="CommentCheck" Content="Mostrar el comentario del archivo al abrirlo" Margin="0,3" />
                         <CheckBox x:Name="TopCheck" Content="Mantener la ventana siempre visible" Margin="0,3" />
+                        <TextBlock Text="Al arrastrar desde un archivo hacia el Explorador" Style="{StaticResource SectionTitle}" />
+                        <RadioButton x:Name="DragVirtual" GroupName="drag" Content="Ficheros virtuales: el arrastre empieza al instante y se extrae al soltar (recomendado)" Margin="0,3" />
+                        <RadioButton x:Name="DragTemp" GroupName="drag" Content="Ficheros temporales: se extrae antes de arrastrar (más compatible con otros programas)" Margin="0,3" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

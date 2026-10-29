@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>MedMDR.Core</RootNamespace>
     <AssemblyName>MedMDR.Core</AssemblyName>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

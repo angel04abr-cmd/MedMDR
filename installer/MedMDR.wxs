@@ -121,6 +121,9 @@
         <RegistryValue Key="shell\extracthere" Type="string" Value="Extraer aquí" />
         <RegistryValue Key="shell\extracthere" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
         <RegistryValue Key="shell\extracthere\command" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot; --extract-here &quot;%1&quot;" />
+        <RegistryValue Key="shell\extractnamed" Type="string" Value="Extraer en carpeta con el nombre del archivo" />
+        <RegistryValue Key="shell\extractnamed" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
+        <RegistryValue Key="shell\extractnamed\command" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot; --extract-named &quot;%1&quot;" />
         <RegistryValue Key="shell\extractto" Type="string" Value="Extraer en una carpeta…" />
         <RegistryValue Key="shell\extractto" Name="Icon" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot;,0" />
         <RegistryValue Key="shell\extractto\command" Type="string" Value="&quot;[INSTALLFOLDER]MedMDR.exe&quot; --extract-to &quot;%1&quot;" />

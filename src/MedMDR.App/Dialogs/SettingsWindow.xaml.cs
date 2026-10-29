@@ -26,6 +26,7 @@ public partial class SettingsWindow : Window
         TSys.IsChecked = s.Theme == CoreTheme.System; TLight.IsChecked = s.Theme == CoreTheme.Light; TDark.IsChecked = s.Theme == CoreTheme.Dark;
         HistoryCheck.IsChecked = s.KeepHistory; BtnTextCheck.IsChecked = s.ShowButtonText; BigCheck.IsChecked = s.LargeIcons;
         FullTitleCheck.IsChecked = s.ShowFullPathInTitle; CommentCheck.IsChecked = s.ShowArchiveComment; TopCheck.IsChecked = s.AlwaysOnTop;
+        DragVirtual.IsChecked = s.DragAsVirtualFiles; DragTemp.IsChecked = !s.DragAsVirtualFiles;
 
         FormatBox.SelectedIndex = s.DefaultFormat switch { ArchiveFormat.Zip => 1, ArchiveFormat.SevenZip => 2, ArchiveFormat.TarGz => 3, ArchiveFormat.Tar => 4, _ => 0 };
         LevelBox.SelectedIndex = Math.Clamp(s.DefaultLevel, 0, 6);
@@ -104,6 +105,7 @@ public partial class SettingsWindow : Window
         _s.Theme = TDark.IsChecked == true ? CoreTheme.Dark : TLight.IsChecked == true ? CoreTheme.Light : CoreTheme.System;
         _s.KeepHistory = HistoryCheck.IsChecked == true; _s.ShowButtonText = BtnTextCheck.IsChecked == true; _s.LargeIcons = BigCheck.IsChecked == true;
         _s.ShowFullPathInTitle = FullTitleCheck.IsChecked == true; _s.ShowArchiveComment = CommentCheck.IsChecked == true; _s.AlwaysOnTop = TopCheck.IsChecked == true;
+        _s.DragAsVirtualFiles = DragVirtual.IsChecked == true;
         _s.DefaultFormat = FormatBox.SelectedIndex switch { 1 => ArchiveFormat.Zip, 2 => ArchiveFormat.SevenZip, 3 => ArchiveFormat.TarGz, 4 => ArchiveFormat.Tar, _ => ArchiveFormat.Mdr };
         _s.DefaultLevel = LevelBox.SelectedIndex; _s.DefaultSolid = SolidCheck.IsChecked == true && FormatBox.SelectedIndex == 0; _s.DefaultTestAfter = TestCheck.IsChecked == true;
         _s.DefaultRecoveryPercent = Num(RecBox.Text, 0, 50, 0);
