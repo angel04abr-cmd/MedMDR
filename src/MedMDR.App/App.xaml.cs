@@ -36,6 +36,8 @@ public partial class App : Application
         }
 
         Window window = Args.Dialog != null ? DevTools.CreateDialog(Args.Dialog) : new MainWindow(Args.Path);
+        if (Args.Width > 0 && window is MainWindow) { window.Width = Args.Width; window.Height = Args.Height; }
+        if (Args.Maximized) window.WindowState = WindowState.Maximized;
         window.Show();
         if (Args.Snapshot != null) DevTools.SnapshotLater(window, Args);
     }
@@ -55,6 +57,9 @@ public sealed class LaunchArgs
     public string? Password;
     public bool AutoYes;                    // solo pruebas: responde «Sí/Aceptar» a las preguntas sin mostrarlas
     public string? AutoText;                // solo pruebas: texto con el que se responden los cuadros de texto
+    public bool ScreenCapture;              // solo pruebas: la captura se toma de la pantalla real (muestra Mica y los botones nativos tal como se ven)
+    public bool Maximized;                  // solo pruebas: abre la ventana maximizada
+    public int Width, Height;               // solo pruebas: tamaño de la ventana (--size 900x600)
     public bool Accept;                     // solo pruebas: tras la captura, cada diálogo se acepta con sus valores (en vez de cancelarse)
     public int SelectRow = -1;
     public string Mode = "main";           // main | add | extract-here | extract-named | extract-to | test (órdenes del menú de Windows)
@@ -79,6 +84,9 @@ public sealed class LaunchArgs
                 case "--extract-to": l.Mode = "extract-to"; break;
                 case "--test": l.Mode = "test"; break;
                 case "--accept": l.Accept = true; break;
+                case "--maximized": l.Maximized = true; break;
+                case "--screen": l.ScreenCapture = true; break;
+                case "--size": { var wh = args[++i].Split('x'); l.Width = int.Parse(wh[0]); l.Height = int.Parse(wh[1]); break; }
                 case "--text": l.AutoText = args[++i]; break;
                 case "--password": l.Password = args[++i]; break;
                 case "--dialog": l.Dialog = args[++i]; break;

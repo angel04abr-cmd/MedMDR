@@ -64,7 +64,9 @@ MedMDR.exe --dump-keys claves.txt                        lista los recursos del 
 ```
 
 - `--auto`: órdenes separadas por comas: `select:N, open, up, test, info, view, extract, extract-here, delete, rename, add:ruta1|ruta2,
-  new:ruta1|ruta2, convert, find, wizard, settings, benchmark, protect, lock, repair, report, dragprep, menu`. Requiere `--snapshot`.
+  new:ruta1|ruta2, convert, find, wizard, settings, benchmark, protect, lock, repair, report, dragprep, dragvirtual, menu, openmenu`. Requiere `--snapshot`.
+- `--size 860x560`, `--maximized`: abren la ventana con ese tamaño o maximizada. `--screen`: la captura se toma de la pantalla real (con Mica, botones nativos y menús desplegados) en vez de pintar la ventana en memoria; hace falta para comprobar el encabezado unificado.
+- Encabezado: la fila de menús ocupa el sitio de la barra de título (`WindowChrome` con botones nativos, Mica en Windows 11 y color liso en Windows 10; ver `Services/WindowBackdrop.cs`). El estilo de Fluent para los menús de arriba no cabe en esa fila: se usa una plantilla compacta puesta como *trigger* de `Role`, porque un `Setter` normal pierde frente al trigger de Fluent.
 - `--shots-dir`: guarda una captura de cada diálogo que se abra y lo cierra. Con `--accept` lo acepta con sus valores en vez de cancelarlo
   (en el asistente recorre los tres pasos, con `--text ruta` como origen). `--yes` y `--text` responden a las preguntas sin mostrarlas.
 - Órdenes del menú de Windows (sin ventana principal): `--add ruta…`, `--extract-here f`, `--extract-to f`, `--test f`.

@@ -129,6 +129,22 @@ try {
         }
     }
 
+    Scenario 'Encabezado unificado: menús legibles, estrecho y maximizado (captura de pantalla real)' {
+        Add-Type -AssemblyName System.Drawing
+        foreach ($v in @(@('light', @()), @('dark', @()), @('light', @('--size', '860x560')), @('light', @('--maximized')))) {
+            $t = $v[0]; $extra = @($v[1]); $png = Join-Path $w ("encabezado-$t-" + ($extra -join '') + '.png')
+            Run-App (@((Join-Path $w 'demo'), '--snapshot', $png, '--theme', $t, '--screen') + $extra)
+            if (-not (Test-Path $png)) { "sin captura del encabezado ($t $($extra -join ' '))"; continue }
+            $bmp = New-Object System.Drawing.Bitmap $png
+            try {
+                # la banda de los menús (arriba a la izquierda) debe tener tinta distinta del fondo: si el texto se recorta o no se pinta, queda lisa
+                $bg = $bmp.GetPixel(300, 40).GetBrightness(); $ink = 0
+                for ($y = 12; $y -lt 34; $y++) { for ($x = 50; $x -lt 440; $x += 2) { if ([math]::Abs($bmp.GetPixel($x, $y).GetBrightness() - $bg) -gt 0.35) { $ink++ } } }
+                if ($ink -lt 150) { "los menús del encabezado no se ven ($t $($extra -join ' '): $ink puntos de texto)" }
+            } finally { $bmp.Dispose() }
+        }
+    }
+
     Scenario 'Borrar un fichero de una carpeta (Papelera)' {
         $d = Copy-Demo 's-borrar'
         Utf8 (Join-Path $d 'medmdr-smoke-borrar-a.txt') 'a'; Utf8 (Join-Path $d 'medmdr-smoke-borrar-b.txt') 'b'

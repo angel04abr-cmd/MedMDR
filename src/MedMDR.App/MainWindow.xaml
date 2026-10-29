@@ -2,15 +2,23 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:MedMDR.Wpf"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="MedMDR" Width="1180" Height="720" MinWidth="860" MinHeight="480"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
         FontFamily="{StaticResource UiFont}" FontSize="{StaticResource FontSizeBody}"
         WindowStartupLocation="CenterScreen" AllowDrop="True"
         PreviewKeyDown="Window_PreviewKeyDown" Drop="Window_Drop" DragOver="Window_DragOver" Closing="Window_Closing">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <local:HeaderTitleConverter x:Key="HeaderTitle" />
     </Window.Resources>
 
-    <Grid>
+    <!-- Barra de título propia: el encabezado (menús y botones) ocupa el sitio de la barra de Windows; los botones de ventana son los nativos -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="6" GlassFrameThickness="-1" UseAeroCaptionButtons="True" CornerRadius="0" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -19,8 +27,62 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Menús -->
-        <Menu Grid.Row="0" Background="Transparent" Padding="6,2">
+        <!-- Fila 1 del encabezado: icono, menús, título discreto y, a la derecha, el sitio de los botones nativos de ventana -->
+        <Grid Grid.Row="0" Height="36">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="CaptionButtonsColumn" Width="150" />
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0" Source="pack://application:,,,/Assets/app.ico" Width="18" Height="18" Margin="14,0,6,0" VerticalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+            <Menu x:Name="MainMenu" Grid.Column="1" Background="Transparent" Padding="2,0" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                <!-- Los menús de arriba, en versión compacta: el estilo de Fluent reserva ~48 px de alto y no cabe en la fila del encabezado -->
+                <Menu.ItemContainerStyle>
+                    <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                        <Style.Triggers>
+                        <Trigger Property="Role" Value="TopLevelHeader">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="MenuItem">
+                                    <Border x:Name="Border" Margin="1,3" CornerRadius="6" Background="{TemplateBinding Background}">
+                                        <Grid>
+                                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" Margin="10,5" VerticalAlignment="Center"
+                                                              TextElement.Foreground="{TemplateBinding Foreground}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                            <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsSubmenuOpen}" Placement="Bottom" HorizontalOffset="-12" VerticalOffset="4"
+                                                   PopupAnimation="None" AllowsTransparency="True" Focusable="False">
+                                                <Border BorderThickness="1" Padding="0,3" CornerRadius="8" BorderBrush="{DynamicResource FlyoutBorderBrush}"
+                                                        Background="{DynamicResource FlyoutBackground}" Margin="12,0,12,18" SnapsToDevicePixels="True">
+                                                    <Border.Effect><DropShadowEffect ShadowDepth="6" Direction="270" Opacity="0.25" BlurRadius="20" /></Border.Effect>
+                                                    <ScrollViewer CanContentScroll="True" Style="{DynamicResource MenuItemScrollViewerStyle}">
+                                                        <Grid>
+                                                            <ItemsPresenter KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="True"
+                                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                                        </Grid>
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource MenuBarItemBackgroundSelected}" />
+                                        </Trigger>
+                                        <Trigger Property="IsSubmenuOpen" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource MenuBarItemBackgroundSelected}" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Menu.ItemContainerStyle>
             <MenuItem Header="_Archivo">
                 <MenuItem Header="_Abrir archivo…" InputGestureText="Ctrl+O" Click="OpenArchiveDialog_Click" />
                 <MenuItem Header="Abrir _carpeta…" Click="OpenFolder_Click" />
@@ -82,10 +144,24 @@
                 <Separator />
                 <MenuItem Header="_Acerca de MedMDR…" Click="About_Click" />
             </MenuItem>
-        </Menu>
+            </Menu>
+            <TextBlock Grid.Column="2" Margin="18,0,12,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="{StaticResource FontSizeCaption}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource HeaderTitle}}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                <Setter Property="Opacity" Value="0.55" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
 
-        <!-- Barra de comandos -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,4,10,2">
+        <!-- Fila 2 del encabezado: barra de comandos (mismo fondo, sin líneas) -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,0,10,2">
             <local:CommandButton x:Name="CmdAdd" Kind="Add" Label="Añadir" Click="Command_Add" />
             <local:CommandButton x:Name="CmdExtract" Kind="Extract" Label="Extraer en" Click="Command_Extract" />
             <local:CommandButton x:Name="CmdTest" Kind="Test" Label="Comprobar" Click="Command_Test" />

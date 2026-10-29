@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using MedMDR.Core;
 using CoreTheme = MedMDR.Core.ThemeMode;
+using System.Windows.Media;
 
 namespace MedMDR.Wpf;
 
@@ -32,6 +33,20 @@ public partial class MainWindow : Window
 
     private bool InArchive => _session != null;
     private IArchive Archive => _session!.Archive;
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        if (WindowBackdrop.TryEnableMica(this)) Background = Brushes.Transparent;       // Windows 11: el fondo es el Mica del sistema; en Windows 10 queda el color liso del tema
+        CaptionButtonsColumn.Width = new GridLength(WindowBackdrop.CaptionButtonsWidth(this));
+    }
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        // Con barra propia, una ventana maximizada sobresale del borde de la pantalla: se compensa con un margen para que no se corte el encabezado
+        RootGrid.Margin = WindowState == WindowState.Maximized ? WindowBackdrop.MaximizedOverhang(this) : new Thickness(0);
+    }
 
     public MainWindow(string? path, bool quick = false)
     {
@@ -547,6 +562,7 @@ public partial class MainWindow : Window
                     FileList_ContextMenuOpening(this, null!);
                     Say("MENÚ: " + string.Join(" | ", RowMenu.Items.OfType<MenuItem>().Select(m => m.Header)));
                     break;
+                case "openmenu": ((MenuItem)MainMenu.Items[1]).IsSubmenuOpen = true; break;                        // solo pruebas: despliega «Órdenes»
                 case "settings": Command_Settings(this, noArgs); break;
                 case "find": Command_Find(this, noArgs); break;
                 case "delete": Command_Delete(this, noArgs); break;

@@ -122,8 +122,24 @@ internal static class DevTools
         timer.Start();
     }
 
+    /// <summary>Captura de la pantalla real (lo que ve el usuario, con Mica y botones nativos). La ventana se pone delante unos instantes.</summary>
+    private static void SaveFromScreen(Window window, string file)
+    {
+        window.Topmost = true; window.Activate();
+        window.Dispatcher.Invoke(() => { }, DispatcherPriority.ContextIdle);
+        System.Threading.Thread.Sleep(700);
+        IntPtr h = new WindowInteropHelper(window).Handle;
+        GetWindowRect(h, out var r);
+        int w = r.Right - r.Left, ht = r.Bottom - r.Top;
+        using var bmp = new System.Drawing.Bitmap(w, ht);
+        using (var g = System.Drawing.Graphics.FromImage(bmp)) g.CopyFromScreen(r.Left, r.Top, 0, 0, new System.Drawing.Size(w, ht));
+        bmp.Save(file, System.Drawing.Imaging.ImageFormat.Png);
+        window.Topmost = false;
+    }
+
     private static void Save(Window window, string file)
     {
+        if (App.Args.ScreenCapture) { SaveFromScreen(window, file); return; }
         IntPtr h = new WindowInteropHelper(window).Handle;
         GetWindowRect(h, out var r);
         int w = r.Right - r.Left, ht = r.Bottom - r.Top;
